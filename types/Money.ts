@@ -7,7 +7,7 @@ export const moneyFormSchema = z.object({
     .min(1, "Name it at least 1 character.")
     .max(32, "Name must be at most 32 characters."),
   amount: z.coerce
-    .number("Amount must only be in numeric.")
+    .number<number>("Amount must only be in numeric.")
     .nonnegative("Amount must not be negative"),
   fintech: z.string().optional(),
   tags: z

@@ -50,7 +50,7 @@ export default function AddMoneyForm() {
     defaultValues: {
       id: nanoid(),
       name: "",
-      amount: undefined,
+      amount: "" as unknown as number,
       fintech: "",
       tags: [],
     },
