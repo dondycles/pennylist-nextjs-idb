@@ -9,11 +9,9 @@ import { useSearchParams } from "next/navigation";
 
 export default function EditMoneyPage() {
   const searchParams = useSearchParams();
-  //   const { moneyInAction } = useActionConfirmStore();
+  const targetMoneyId = searchParams.get("moneyId");
   const { moneys } = useMoneysStore();
-  const targetMoney = moneys.find(
-    (money) => money.id === searchParams.get("moneyId")
-  );
+  const targetMoney = moneys.find((money) => money.id === targetMoneyId);
 
   if (!targetMoney)
     return (
