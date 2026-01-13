@@ -12,8 +12,8 @@ export const useListOrderStore = create<ListOrder>()(
   persist(
     (set) => ({
       order: {
-        by: "amount",
-        flow: [{ value: "low-to-high", label: "From lowest to highest" }],
+        by: "date",
+        flow: [{ value: "first-to-last", label: "First to last" }],
       },
       setOrder: (order) =>
         set(() => {
