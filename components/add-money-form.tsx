@@ -133,7 +133,7 @@ export default function AddMoneyForm() {
           name="fintech"
           control={form.control}
           render={({ field, fieldState }) => (
-            <Field orientation="responsive" data-invalid={fieldState.invalid}>
+            <Field orientation="horizontal" data-invalid={fieldState.invalid}>
               <FieldContent>
                 <FieldLabel htmlFor="add-money-form-fintech-input">
                   Fintech?
@@ -203,7 +203,7 @@ export default function AddMoneyForm() {
           )}
         />
         <FieldSet className="gap-3">
-          <Field orientation="responsive">
+          <Field orientation="horizontal">
             <FieldContent>
               <FieldLegend variant="label" className="m-0">
                 Tags?
@@ -215,7 +215,7 @@ export default function AddMoneyForm() {
                 <FieldError errors={[form.formState.errors.tags.root]} />
               )}
             </FieldContent>
-            <Field className="gap-2" orientation="responsive">
+            <Field className="gap-2 w-fit" orientation="responsive">
               <Button
                 type="button"
                 variant="secondary"
@@ -245,7 +245,7 @@ export default function AddMoneyForm() {
                 render={({ field: controllerField, fieldState }) => (
                   <Field
                     data-invalid={fieldState.invalid}
-                    className="max-w-[calc(25%-6px)]"
+                    className="max-w-[calc(33.3333%-6px)]"
                   >
                     <FieldContent>
                       <InputGroup>
@@ -279,7 +279,7 @@ export default function AddMoneyForm() {
             ))}
           </FieldGroup>
         </FieldSet>
-        <FieldSeparator className="mt-auto" />
+        <FieldSeparator className="mt-auto -mx-4" />
         <Field orientation="horizontal" className="gap-2 justify-end">
           <Button
             type="button"

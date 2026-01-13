@@ -4,7 +4,6 @@ import { twMerge } from "tailwind-merge";
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
-export const formatter = new Intl.NumberFormat("en-US", {
+export const amountFormat = new Intl.NumberFormat("en-US", {
   style: "decimal",
-  currency: "PHP", // Change to 'PHP', 'EUR', etc.
 });

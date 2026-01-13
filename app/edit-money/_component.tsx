@@ -25,7 +25,7 @@ export default function EditMoneyComponent({
     );
 
   return (
-    <main className="flex min-h-screen w-full flex-col items-center pt-4 pb-32 px-4 mx-auto gap-6 max-w-lg">
+    <main className="flex min-h-screen w-full flex-col items-center pt-4 pb-32 mx-auto gap-6 max-w-lg">
       <div className="flex flex-wrap gap-4 justify-between w-full border-b p-4">
         <Button size="icon" variant="secondary" asChild>
           <Link href="/list">
