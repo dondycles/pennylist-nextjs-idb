@@ -3,19 +3,51 @@ import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
 import _ from "lodash";
 import { History, Plane, PlusIcon, Settings } from "lucide-react";
-import BottomDrawer from "@/components/bottom-drawer";
-import { useMoneysStore } from "@/store/MoneysStore";
+import { useMoneysStore } from "@/store/Moneys";
 import MoneyCard from "@/components/money-card";
 import { useActionConfirmStore } from "@/store/ActionConfirm";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { amountFormat } from "@/lib/utils";
+import SettingsDialog from "@/components/settings-dialog";
+import { useListOrderStore } from "@/store/ListOrder";
+import { Money } from "@/types/Money";
 export default function ListPage() {
   const { moneys } = useMoneysStore();
-  const sortedMoneys = moneys.sort((a, b) => a.amount - b.amount);
+  const { order } = useListOrderStore();
+
+  const sortFn = (a: Money, b: Money) => {
+    if (order.by === "amount" && order.flow[0].value === "first-to-last") {
+      return a.amount - b.amount;
+    }
+    if (order.by === "amount" && order.flow[0].value === "last-to-first") {
+      return b.amount - a.amount;
+    }
+
+    if (order.by === "date" && order.flow[0].value === "first-to-last")
+      return (
+        new Date(a.date_added).getTime() - new Date(b.date_added).getTime()
+      );
+    if (order.by === "date" && order.flow[0].value === "last-to-first")
+      return (
+        new Date(b.date_added).getTime() - new Date(a.date_added).getTime()
+      );
+
+    if (order.by === "name" && order.flow[0].value === "first-to-last")
+      return a.name.localeCompare(b.name);
+    if (order.by === "name" && order.flow[0].value === "last-to-first")
+      return b.name.localeCompare(a.name);
+
+    return new Date(a.date_added).getTime() - new Date(b.date_added).getTime();
+  };
+  const sortedMoneys = moneys.sort((a, b) => sortFn(a, b));
   const totalMoney = _.sum(moneys.map((money) => Number(money.amount)));
-  const { setOpenDialog, setMoneyInAction, setTypeOfAction } =
-    useActionConfirmStore();
+  const {
+    setOpenDialog,
+    setMoneyInAction,
+    setTypeOfAction,
+    setMoneyInActionNewData,
+  } = useActionConfirmStore();
   const route = useRouter();
   return (
     <main className="flex min-h-screen w-full flex-col items-center pt-4 pb-32 px-4 mx-auto gap-6 max-w-lg">
@@ -33,16 +65,11 @@ export default function ListPage() {
           <Button variant="secondary" size="icon">
             <Plane />
           </Button>
-          <BottomDrawer
-            title="Settings"
-            desc="Set things below."
-            trigger={
-              <Button variant="secondary" size="icon">
-                <Settings />
-              </Button>
-            }
-            content={null}
-          />
+          <SettingsDialog>
+            <Button variant="secondary" size="icon">
+              <Settings />
+            </Button>
+          </SettingsDialog>
           <Button variant="default" size="icon" asChild>
             <Link href="/add-money">
               <PlusIcon />
@@ -56,8 +83,9 @@ export default function ListPage() {
           key={money.id}
           doAction={(type) => {
             if (type === "remove") {
-              setMoneyInAction(money);
               setTypeOfAction("removeMoney");
+              setMoneyInAction(money);
+              setMoneyInActionNewData(undefined);
               setOpenDialog(true);
             }
             if (type === "edit") {

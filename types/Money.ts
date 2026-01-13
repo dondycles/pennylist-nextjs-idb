@@ -17,6 +17,8 @@ export const moneyFormSchema = z.object({
       })
     )
     .optional(),
+  date_added: z.date().default(new Date()),
+  date_edited: z.date().default(new Date()),
 });
 
 export type Money = z.infer<typeof moneyFormSchema>;

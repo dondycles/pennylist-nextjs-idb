@@ -10,7 +10,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useActionConfirmStore } from "@/store/ActionConfirm";
-import { useMoneysStore } from "@/store/MoneysStore";
+import { useMoneysStore } from "@/store/Moneys";
 import MoneyCard from "./money-card";
 import { Button } from "./ui/button";
 import { ArrowDown } from "lucide-react";

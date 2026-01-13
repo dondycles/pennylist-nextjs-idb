@@ -1,3 +1,4 @@
+"use client";
 import { Button } from "./ui/button";
 import {
   Field,
@@ -36,10 +37,21 @@ import {
   InputGroupInput,
 } from "./ui/input-group";
 import { Money, moneyFormSchema } from "@/types/Money";
-import { useActionConfirmStore } from "@/store/ActionConfirm";
+import { useMoneysStore } from "@/store/Moneys";
+import { nanoid } from "nanoid";
+import { useRouter } from "next/navigation";
 import { FINTECHS } from "@/lib/contants";
+import { useActionConfirmStore } from "@/store/ActionConfirm";
 
-export default function EditMoneyForm({ money }: { money: Money }) {
+export default function MoneyForm({
+  money,
+  action,
+}: {
+  money?: Money;
+  action: "add" | "edit";
+}) {
+  const router = useRouter();
+  const { add } = useMoneysStore();
   const {
     setMoneyInAction,
     setOpenDialog,
@@ -48,7 +60,17 @@ export default function EditMoneyForm({ money }: { money: Money }) {
   } = useActionConfirmStore();
   const form = useForm<z.infer<typeof moneyFormSchema>>({
     resolver: zodResolver(moneyFormSchema),
-    defaultValues: money,
+    defaultValues: money
+      ? money
+      : {
+          id: nanoid(),
+          name: "",
+          amount: "" as unknown as number,
+          fintech: "",
+          tags: [],
+          date_added: new Date(),
+          date_edited: new Date(),
+        },
   });
 
   const {
@@ -60,9 +82,29 @@ export default function EditMoneyForm({ money }: { money: Money }) {
     name: "tags",
   });
 
+  function onSubmit(money: z.infer<typeof moneyFormSchema>) {
+    addMoney(money);
+    editMoney();
+  }
+
+  function addMoney(money: z.infer<typeof moneyFormSchema>) {
+    if (action !== "add") return;
+    add(money);
+    router.push("/list");
+  }
+
+  function editMoney() {
+    if (action !== "edit") return;
+    setMoneyInAction(money);
+    setMoneyInActionNewData(form.getValues());
+    setTypeOfAction("editMoney");
+    setOpenDialog(true);
+  }
+
   return (
     <form
-      id="edit-money-form"
+      id="money-form"
+      onSubmit={form.handleSubmit(onSubmit)}
       className="max-w-lg mx-auto w-full px-4 h-full flex-1 grid"
     >
       <FieldGroup className="h-full">
@@ -71,10 +113,10 @@ export default function EditMoneyForm({ money }: { money: Money }) {
           control={form.control}
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor="edit-money-form-name-input">Name</FieldLabel>
+              <FieldLabel htmlFor="money-form-name-input">Name</FieldLabel>
               <Input
                 {...field}
-                id="edit-money-form-name-input"
+                id="money-form-name-input"
                 aria-invalid={fieldState.invalid}
                 placeholder="BDO Savings"
                 autoComplete="off"
@@ -88,12 +130,10 @@ export default function EditMoneyForm({ money }: { money: Money }) {
           control={form.control}
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor="edit-money-form-amount-input">
-                Amount
-              </FieldLabel>
+              <FieldLabel htmlFor="money-form-amount-input">Amount</FieldLabel>
               <Input
                 {...field}
-                id="edit-money-form-amount-input"
+                id="money-form-amount-input"
                 placeholder="00.00"
                 aria-invalid={fieldState.invalid}
                 autoComplete="off"
@@ -109,7 +149,7 @@ export default function EditMoneyForm({ money }: { money: Money }) {
           render={({ field, fieldState }) => (
             <Field orientation="horizontal" data-invalid={fieldState.invalid}>
               <FieldContent>
-                <FieldLabel htmlFor="edit-money-form-fintech-input">
+                <FieldLabel htmlFor="money-form-fintech-input">
                   Fintech?
                 </FieldLabel>
                 <FieldDescription>
@@ -122,7 +162,7 @@ export default function EditMoneyForm({ money }: { money: Money }) {
               <Popover modal>
                 <PopoverTrigger asChild>
                   <Button
-                    id="edit-money-form-fintech-input"
+                    id="money-form-fintech-input"
                     variant="secondary"
                     role="combobox"
                     className={cn(
@@ -225,7 +265,7 @@ export default function EditMoneyForm({ money }: { money: Money }) {
                       <InputGroup>
                         <InputGroupInput
                           {...controllerField}
-                          id={`edit-money-form-tag-input-${index}`}
+                          id={`money-form-tag-input-${index}`}
                           aria-invalid={fieldState.invalid}
                           placeholder="savings"
                         />
@@ -260,20 +300,14 @@ export default function EditMoneyForm({ money }: { money: Money }) {
             variant="secondary"
             onClick={() => {
               form.reset();
+              if (action === "add")
+                form.setValue("amount", "" as unknown as number);
             }}
           >
             Reset
           </Button>
-          <Button
-            type="button"
-            onClick={() => {
-              setMoneyInAction(money);
-              setMoneyInActionNewData(form.getValues());
-              setTypeOfAction("editMoney");
-              setOpenDialog(true);
-            }}
-          >
-            Edit
+          <Button className="capitalize" type="submit" form="money-form">
+            {action}
           </Button>
         </Field>
       </FieldGroup>

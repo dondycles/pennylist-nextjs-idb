@@ -5,5 +5,5 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 export const amountFormat = new Intl.NumberFormat("en-US", {
-  style: "decimal",
+  trailingZeroDisplay: "stripIfInteger",
 });

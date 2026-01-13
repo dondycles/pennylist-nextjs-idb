@@ -14,3 +14,37 @@ export const FINTECHS = [
   { label: "CIMB Bank", value: "cimb", bg: undefined },
   { label: "UNO Digital Bank", value: "uno", bg: undefined },
 ] as const;
+
+export type ListOrderByOptions = "amount" | "name" | "date";
+
+export type ListOrderOptions = {
+  by: ListOrderByOptions;
+  flow: {
+    value: string;
+    label: string;
+  }[];
+};
+
+export const LIST_ORDER_OPTIONS: readonly ListOrderOptions[] = [
+  {
+    by: "amount",
+    flow: [
+      { value: "first-to-last", label: "Low to high" },
+      { value: "last-to-first", label: "High to low" },
+    ],
+  },
+  {
+    by: "name",
+    flow: [
+      { value: "first-to-last", label: "A-Z" },
+      { value: "last-to-first", label: "Z-A" },
+    ],
+  },
+  {
+    by: "date",
+    flow: [
+      { value: "first-to-last", label: "First to last" },
+      { value: "last-to-first", label: "Last to first" },
+    ],
+  },
+] as const;
