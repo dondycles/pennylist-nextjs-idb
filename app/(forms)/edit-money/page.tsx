@@ -17,7 +17,16 @@ export default async function EditMoneyPage({
     );
 
   return (
-    <Suspense>
+    <Suspense
+      fallback={
+        <main className="flex min-h-dvh w-full flex-col items-center justify-center pt-4 pb-32 px-4 mx-auto gap-6 max-w-lg">
+          <Info className="size-16" />
+          <h1 className="text-foreground text-2xl font-black">
+            Finding money...
+          </h1>
+        </main>
+      }
+    >
       <EditMoneyComponent targetMoneyId={targetMoneyId} />
     </Suspense>
   );
