@@ -11,7 +11,7 @@ export default function FormsPageLayout({
 }) {
   const pathname = usePathname();
   return (
-    <main className="flex min-h-screen w-full flex-col items-center py-4 mx-auto gap-4 max-w-lg">
+    <main className="flex min-h-dvh w-full flex-col items-center py-4 mx-auto gap-4 max-w-lg">
       <div className="flex flex-wrap gap-4 justify-between w-full border-b px-4 pb-4 items-center">
         <Button size="icon" variant="secondary" asChild>
           <Link href="/list">

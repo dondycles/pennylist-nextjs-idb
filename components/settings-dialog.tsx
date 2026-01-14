@@ -29,7 +29,7 @@ export default function SettingsDialog({
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent showCloseButton={false}>
         <DialogHeader>
-          <DialogTitle>Setting</DialogTitle>
+          <DialogTitle>Settings</DialogTitle>
           <DialogDescription>Set things below.</DialogDescription>
         </DialogHeader>
         {/* <pre>{JSON.stringify(order, null, 2)}</pre> */}

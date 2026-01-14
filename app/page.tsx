@@ -19,7 +19,7 @@ export default function Home() {
     },
   ];
   return (
-    <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-4 mx-auto gap-8">
+    <main className="flex min-h-dvh w-full max-w-3xl flex-col items-center justify-between py-32 px-4 mx-auto gap-8">
       <div className="flex flex-col items-center gap-8">
         <Image
           className="dark:invert-0 invert"
