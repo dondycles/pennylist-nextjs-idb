@@ -26,7 +26,7 @@ export default function MoneyCard({
   return (
     <div
       key={money.id}
-      className="rounded-4xl flex bg-muted/25 w-full p-6 justify-between relative overflow-hidden"
+      className="rounded-4xl flex bg-muted dark:bg-muted/25 w-full p-6 justify-between relative overflow-hidden"
     >
       <div className="grid z-2">
         <p className="font-black text-muted-foreground truncate">

@@ -34,7 +34,7 @@ export default function SettingsDialog({
           <DialogDescription>Set things below.</DialogDescription>
         </DialogHeader>
         {/* <pre>{JSON.stringify(order, null, 2)}</pre> */}
-        <div className="bg-muted/25 rounded-3xl p-4 flex flex-wrap gap-2 justify-between items-center truncate">
+        <div className="bg-muted dark:bg-muted/25 rounded-3xl p-4 flex flex-wrap gap-2 justify-between items-center truncate">
           <p className="font-black text-muted-foreground">List order by</p>
           <div className="flex gap-2 justify-end flex-wrap ml-auto mr-0">
             <DropdownMenu>
@@ -65,7 +65,7 @@ export default function SettingsDialog({
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="secondary"
-                  className="py-0 px-3 text-sm font-bold "
+                  className="py-0 px-3 text-sm font-bold"
                 >
                   {
                     LIST_ORDER_OPTIONS.find(
@@ -93,7 +93,7 @@ export default function SettingsDialog({
             </DropdownMenu>
           </div>
         </div>
-        <div className="bg-muted/25 rounded-3xl p-4 truncate flex gap-2 justify-between items-center flex-wrap">
+        <div className="bg-muted dark:bg-muted/25 rounded-3xl p-4 truncate flex gap-2 justify-between items-center flex-wrap">
           <p className="font-black text-muted-foreground">Theme</p>
           <ModeToggle />
         </div>
