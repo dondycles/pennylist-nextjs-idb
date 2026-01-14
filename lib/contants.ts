@@ -7,6 +7,7 @@ import paypal from "@/imgs/fintechs/paypal.webp";
 import maribank from "@/imgs/fintechs/maribank.webp";
 import cimb from "@/imgs/fintechs/cimb.webp";
 import uno from "@/imgs/fintechs/uno.webp";
+import gotyme from "@/imgs/fintechs/gotyme.webp";
 
 export const FINTECHS = [
   { label: "GCash", value: "gc", bg: gcash },
@@ -18,6 +19,7 @@ export const FINTECHS = [
   { label: "BPI", value: "bpi", bg: bpi },
   { label: "CIMB Bank", value: "cimb", bg: cimb },
   { label: "UNO Digital Bank", value: "uno", bg: uno },
+  { label: "GoTyme", value: "gt", bg: gotyme },
 ] as const;
 
 export type ListOrderByOptions = "amount" | "name" | "date";

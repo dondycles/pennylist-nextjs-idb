@@ -69,8 +69,8 @@ export default function MoneyForm({
           amount: "" as unknown as number,
           fintech: "",
           tags: [],
-          date_added: new Date(),
-          date_edited: new Date(),
+          date_added: String(new Date()),
+          date_edited: String(new Date()),
         },
   });
 
@@ -111,6 +111,40 @@ export default function MoneyForm({
       className="max-w-lg mx-auto w-full px-4 pb-24 flex-1 grid overflow-auto"
     >
       <FieldGroup className="h-full ">
+        <Controller
+          name="id"
+          control={form.control}
+          render={({ field, fieldState }) => (
+            <Field data-invalid={fieldState.invalid}>
+              <FieldLabel htmlFor="money-form-name-input">ID</FieldLabel>
+              <Input
+                {...field}
+                aria-invalid={fieldState.invalid}
+                placeholder="BDO Savings"
+                autoComplete="off"
+              />
+              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+            </Field>
+          )}
+        />
+        <Controller
+          name="date_added"
+          control={form.control}
+          render={({ field, fieldState }) => (
+            <Field data-invalid={fieldState.invalid}>
+              <FieldLabel htmlFor="money-form-name-input">
+                Date Added
+              </FieldLabel>
+              <Input
+                {...field}
+                aria-invalid={fieldState.invalid}
+                placeholder="BDO Savings"
+                autoComplete="off"
+              />
+              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+            </Field>
+          )}
+        />
         <Controller
           name="name"
           control={form.control}
