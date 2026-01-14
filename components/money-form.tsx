@@ -105,7 +105,7 @@ export default function MoneyForm({
     <form
       id="money-form"
       onSubmit={form.handleSubmit(onSubmit)}
-      className="max-w-lg mx-auto w-full px-4 flex-1 grid overflow-auto"
+      className="max-w-lg mx-auto w-full px-4 pb-24 flex-1 grid overflow-auto"
     >
       <FieldGroup className="h-full ">
         <Controller
