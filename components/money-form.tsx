@@ -42,6 +42,7 @@ import { nanoid } from "nanoid";
 import { useRouter } from "next/navigation";
 import { FINTECHS } from "@/lib/contants";
 import { useActionConfirmStore } from "@/store/ActionConfirm";
+import { useState } from "react";
 
 export default function MoneyForm({
   money,
@@ -72,6 +73,8 @@ export default function MoneyForm({
           date_edited: new Date(),
         },
   });
+
+  const [openSelectFintect, setOpenSelectFintech] = useState(false);
 
   const {
     fields: tags,
@@ -159,7 +162,11 @@ export default function MoneyForm({
                   <FieldError errors={[fieldState.error]} />
                 )}
               </FieldContent>
-              <Popover modal>
+              <Popover
+                onOpenChange={setOpenSelectFintech}
+                open={openSelectFintect}
+                modal
+              >
                 <PopoverTrigger asChild>
                   <Button
                     id="money-form-fintech-input"
@@ -195,6 +202,7 @@ export default function MoneyForm({
                                   ? ""
                                   : fintech.value
                               );
+                              setOpenSelectFintech(false);
                             }}
                           >
                             {fintech.label}
