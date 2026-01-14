@@ -50,7 +50,7 @@ export default function ListPage() {
   } = useActionConfirmStore();
   const route = useRouter();
   return (
-    <main className="flex min-h-screen w-full flex-col items-center pt-4 pb-32 px-4 mx-auto gap-6 max-w-lg">
+    <main className="flex min-h-dvh w-full flex-col items-center pt-4 pb-32 px-4 mx-auto gap-6 max-w-lg">
       <div className="rounded-4xl flex flex-col gap-6 text-center bg-muted/25 w-full p-6">
         <div className="grid">
           <p className="font-black text-muted-foreground">Total Money</p>
