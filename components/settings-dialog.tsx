@@ -16,6 +16,7 @@ import {
 import { LIST_ORDER_OPTIONS, ListOrderByOptions } from "@/lib/contants";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { useListOrderStore } from "@/store/ListOrder";
+import { ModeToggle } from "./theme-toggle";
 
 export default function SettingsDialog({
   children,
@@ -29,13 +30,13 @@ export default function SettingsDialog({
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent showCloseButton={false}>
         <DialogHeader>
-          <DialogTitle>Settings</DialogTitle>
+          <DialogTitle>Setting</DialogTitle>
           <DialogDescription>Set things below.</DialogDescription>
         </DialogHeader>
         {/* <pre>{JSON.stringify(order, null, 2)}</pre> */}
-        <div className="bg-muted/25 rounded-3xl p-4 space-y-4 truncate">
-          <p className="font-black text-muted-foreground">List order by: </p>
-          <div className="flex gap-2 justify-end flex-wrap">
+        <div className="bg-muted/25 rounded-3xl p-4 flex flex-wrap gap-2 justify-between items-center truncate">
+          <p className="font-black text-muted-foreground">List order by</p>
+          <div className="flex gap-2 justify-end flex-wrap ml-auto mr-0">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
@@ -91,6 +92,10 @@ export default function SettingsDialog({
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
+        </div>
+        <div className="bg-muted/25 rounded-3xl p-4 truncate flex gap-2 justify-between items-center flex-wrap">
+          <p className="font-black text-muted-foreground">Theme</p>
+          <ModeToggle />
         </div>
       </DialogContent>
     </Dialog>
