@@ -112,40 +112,6 @@ export default function MoneyForm({
     >
       <FieldGroup className="h-full ">
         <Controller
-          name="id"
-          control={form.control}
-          render={({ field, fieldState }) => (
-            <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor="money-form-name-input">ID</FieldLabel>
-              <Input
-                {...field}
-                aria-invalid={fieldState.invalid}
-                placeholder="BDO Savings"
-                autoComplete="off"
-              />
-              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-            </Field>
-          )}
-        />
-        <Controller
-          name="date_added"
-          control={form.control}
-          render={({ field, fieldState }) => (
-            <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor="money-form-name-input">
-                Date Added
-              </FieldLabel>
-              <Input
-                {...field}
-                aria-invalid={fieldState.invalid}
-                placeholder="BDO Savings"
-                autoComplete="off"
-              />
-              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-            </Field>
-          )}
-        />
-        <Controller
           name="name"
           control={form.control}
           render={({ field, fieldState }) => (
