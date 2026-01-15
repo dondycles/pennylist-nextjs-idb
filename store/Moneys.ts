@@ -8,6 +8,8 @@ export type MoneysStore = {
   add: (money: Money) => void;
   remove: (money: Money) => void;
   edit: (money: Money) => void;
+  _hasHydrated: boolean; // Tracking variable
+  setHasHydrated: (state: boolean) => void;
 };
 
 export const useMoneysStore = create<MoneysStore>()(
@@ -44,10 +46,15 @@ export const useMoneysStore = create<MoneysStore>()(
             moneys: newMoneys,
           };
         }),
+      _hasHydrated: false,
+      setHasHydrated: (state) => set({ _hasHydrated: state }),
     }),
     {
       name: "moneys",
       storage: createJSONStorage(() => idb),
+      onRehydrateStorage: (state) => {
+        return () => state.setHasHydrated(true);
+      },
     }
   )
 );

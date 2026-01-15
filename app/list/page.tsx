@@ -12,8 +12,10 @@ import { amountFormat } from "@/lib/utils";
 import SettingsDialog from "@/components/settings-dialog";
 import { useListOrderStore } from "@/store/ListOrder";
 import { Money } from "@/types/Money";
+import Loader from "@/components/loader";
+import { Skeleton } from "@/components/ui/skeleton";
 export default function ListPage() {
-  const { moneys } = useMoneysStore();
+  const { moneys, _hasHydrated } = useMoneysStore();
   const { order } = useListOrderStore();
 
   const sortFn = (a: Money, b: Money) => {
@@ -49,9 +51,19 @@ export default function ListPage() {
     setMoneyInActionNewData,
   } = useActionConfirmStore();
   const route = useRouter();
+
+  if (!_hasHydrated) {
+    return (
+      <Main>
+        <Skeleton className="rounded-b-4xl bg-muted dark:bg-muted/25 p-6 w-full h-46 flex justify-center">
+          <Loader />
+        </Skeleton>
+      </Main>
+    );
+  }
   return (
-    <main className="flex min-h-dvh w-full flex-col items-center pt-4 pb-32 px-4 mx-auto gap-6 max-w-lg">
-      <div className="rounded-4xl flex flex-col gap-6 text-center bg-muted dark:bg-muted/25 w-full p-6">
+    <Main>
+      <div className="rounded-b-4xl flex flex-col gap-6 text-center bg-muted dark:bg-muted/25 w-full p-6">
         <div className="grid">
           <p className="font-black text-muted-foreground">Total Money</p>
           <p className="font-black text-4xl truncate">
@@ -94,6 +106,14 @@ export default function ListPage() {
           }}
         />
       ))}
+    </Main>
+  );
+}
+
+function Main({ children }: { children: React.ReactNode }) {
+  return (
+    <main className="flex min-h-dvh w-full flex-col items-center pb-32 px-4 mx-auto gap-6 max-w-lg">
+      {children}
     </main>
   );
 }
