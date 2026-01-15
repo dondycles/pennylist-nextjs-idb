@@ -1,7 +1,5 @@
 import { create } from "zustand";
-import { persist, createJSONStorage } from "zustand/middleware";
 import type { Money } from "@/types/Money";
-import { idb } from "@/lib/idb";
 
 export type ActionConfirmStore = {
   moneyInAction: Money | undefined;

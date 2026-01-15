@@ -52,7 +52,17 @@ export default function RootLayout({
           <QueryProvider>
             {children}
             <ActionAlertDialog />
-            <Toaster />
+            <Toaster
+              toastOptions={{
+                classNames: {
+                  title: "!text-base !font-bold",
+                  description: "!text-muted-foreground !font-semibold",
+                  icon: "!mr-4",
+                },
+                duration: 100000,
+              }}
+              richColors
+            />
           </QueryProvider>
         </ThemeProvider>
       </body>

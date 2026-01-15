@@ -43,6 +43,8 @@ import { useRouter } from "next/navigation";
 import { FINTECHS } from "@/lib/contants";
 import { useActionConfirmStore } from "@/store/ActionConfirm";
 import { useState } from "react";
+import { useHistoryStore } from "@/store/History";
+import { toast } from "sonner";
 
 export default function MoneyForm({
   money,
@@ -51,8 +53,10 @@ export default function MoneyForm({
   money?: Money;
   action: "add" | "edit";
 }) {
+  const date = String(new Date());
   const router = useRouter();
-  const { add } = useMoneysStore();
+  const { add, moneys } = useMoneysStore();
+  const { addHistory } = useHistoryStore();
   const {
     setMoneyInAction,
     setOpenDialog,
@@ -69,8 +73,8 @@ export default function MoneyForm({
           amount: "" as unknown as number,
           fintech: "",
           tags: [],
-          date_added: String(new Date()),
-          date_edited: String(new Date()),
+          date_added: date,
+          date_edited: date,
         },
   });
 
@@ -87,7 +91,19 @@ export default function MoneyForm({
 
   function onSubmit(money: z.infer<typeof moneyFormSchema>) {
     addMoney(money);
-    editMoney();
+    if (action === "edit") {
+      if (!moneys.find((m) => m.id === money.id))
+        return toast.error("Invalid Money", {
+          description: "The money does not exist.",
+        });
+      editMoney();
+    }
+    addHistory({
+      date_added: date,
+      id: nanoid(),
+      money_id: money.id,
+      type: action,
+    });
   }
 
   function addMoney(money: z.infer<typeof moneyFormSchema>) {

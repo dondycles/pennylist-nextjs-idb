@@ -3,7 +3,8 @@
 import Loader from "@/components/loader";
 import MoneyForm from "@/components/money-form";
 import { useMoneysStore } from "@/store/Moneys";
-import { Info } from "lucide-react";
+import { ChevronLeft, Info } from "lucide-react";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 
 export default function EditMoneyComponent({
@@ -22,11 +23,15 @@ export default function EditMoneyComponent({
 
   if (!targetMoney)
     return (
-      <main className="flex flex-col items-center justify-center m-auto">
+      <main className="flex flex-col items-center justify-center m-auto  text-destructive p-4 text-center space-y-4">
         <Info className="size-16" />
-        <h1 className="text-foreground text-2xl font-black">
-          Money Not Existing
-        </h1>
+        <h1 className="text-2xl font-black">Money does not exist</h1>
+        <Link
+          href="/list"
+          className="text-muted-foreground font-semibold text-base inline-flex gap-1"
+        >
+          <ChevronLeft /> Back to list
+        </Link>
       </main>
     );
 
