@@ -118,6 +118,7 @@ const CurrencySelect = React.forwardRef<HTMLButtonElement, CurrencySelectProps>(
             aria-expanded={open}
             className="py-0 px-3 text-sm font-bold"
             data-valid={valid}
+            id="currency-select"
           >
             {value ?? "Select currency"}
             <ChevronsUpDown />

@@ -7,11 +7,10 @@ import {
 } from "./ui/dropdown-menu";
 import { Button } from "./ui/button";
 import { Ellipsis, Pencil, Trash } from "lucide-react";
-import { amountFormat } from "@/lib/utils";
 import Image from "next/image";
 import { FINTECHS } from "@/lib/contants";
-import { useListSettingsStore } from "@/store/ListSettings";
 import CurrencySign from "./currency-sign";
+import Amount from "./amount";
 
 export default function MoneyCard({
   money,
@@ -44,7 +43,7 @@ export default function MoneyCard({
         </p>
         <p className="font-black text-4xl truncate">
           <CurrencySign />
-          <span>{amountFormat(money.amount)}</span>
+          <Amount amount={money.amount} />
         </p>
       </div>
       {withOptions ? (

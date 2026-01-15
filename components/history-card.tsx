@@ -1,8 +1,8 @@
 import { FINTECHS } from "@/lib/contants";
-import { amountFormat } from "@/lib/utils";
 import { History } from "@/types/History";
 import Image from "next/image";
 import CurrencySign from "./currency-sign";
+import Amount from "./amount";
 
 export default function HistoryCard({ history }: { history: History }) {
   const fintechData = FINTECHS.find(
@@ -32,14 +32,14 @@ export default function HistoryCard({ history }: { history: History }) {
           }`}
         >
           <CurrencySign amountForSign={valueChanged} />
-          <span>{amountFormat(valueChanged)}</span>
+          <Amount amount={valueChanged} />
         </p>
       </div>
       <div className="z-2 flex gap-6 justify-between items-start flex-1 text-xs font-normal text-muted-foreground border-t pt-4">
         <span className="truncate">Total Money After Transaction:</span>
         <p className="capitalize">
           <CurrencySign className="text-xs font-normal text-muted-foreground" />{" "}
-          <span>{amountFormat(history.snapshot.after.total_money)}</span>
+          <Amount amount={history.snapshot.after.total_money} />
         </p>
       </div>
       <div className="absolute top-0 left-1/2 w-full h-full z-0  opacity-10 pointer-events-none">

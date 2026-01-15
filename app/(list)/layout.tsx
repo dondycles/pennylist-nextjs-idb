@@ -15,6 +15,7 @@ import { usePathname } from "next/navigation";
 import { useHistoryStore } from "@/store/History";
 import { useListSettingsStore } from "@/store/ListSettings";
 import CurrencySign from "@/components/currency-sign";
+import Amount from "@/components/amount";
 
 export default function ListsLayout({
   children,
@@ -44,7 +45,7 @@ export default function ListsLayout({
           <p className="font-black text-muted-foreground">Total Money</p>
           <p className="font-black text-4xl truncate">
             <CurrencySign />
-            <span>{amountFormat(totalMoney)}</span>
+            <Amount amount={totalMoney} />
           </p>
         </div>
         <ButtonGroup className="mx-auto">

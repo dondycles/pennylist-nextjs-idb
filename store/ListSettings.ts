@@ -10,6 +10,8 @@ export type ListSettingsStore = {
   setHasHydrated: (state: boolean) => void;
   currency: string;
   setCurrency: (currency: string) => void;
+  hideNumbers: boolean;
+  setHideNumbers: (hideNumbers: boolean) => void;
 };
 
 export const useListSettingsStore = create<ListSettingsStore>()(
@@ -27,6 +29,8 @@ export const useListSettingsStore = create<ListSettingsStore>()(
       setHasHydrated: (state) => set({ _hasHydrated: state }),
       currency: "PHP",
       setCurrency: (currency) => set({ currency }),
+      hideNumbers: false,
+      setHideNumbers: (hideNumbers) => set({ hideNumbers }),
     }),
     {
       name: "list-order",
