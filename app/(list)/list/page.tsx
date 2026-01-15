@@ -1,0 +1,63 @@
+"use client";
+import { useMoneysStore } from "@/store/Moneys";
+import MoneyCard from "@/components/money-card";
+import { useActionConfirmStore } from "@/store/ActionConfirm";
+import { useRouter } from "next/navigation";
+import { useListSettingsStore } from "@/store/ListSettings";
+import { Money } from "@/types/Money";
+
+export default function ListPage() {
+  const { moneys } = useMoneysStore();
+  const { order } = useListSettingsStore();
+
+  const sortFn = (a: Money, b: Money) => {
+    if (order.by === "amount" && order.flow[0].value === "first-to-last") {
+      return a.amount - b.amount;
+    }
+    if (order.by === "amount" && order.flow[0].value === "last-to-first") {
+      return b.amount - a.amount;
+    }
+
+    if (order.by === "date" && order.flow[0].value === "first-to-last")
+      return (
+        new Date(a.date_added).getTime() - new Date(b.date_added).getTime()
+      );
+    if (order.by === "date" && order.flow[0].value === "last-to-first")
+      return (
+        new Date(b.date_added).getTime() - new Date(a.date_added).getTime()
+      );
+
+    if (order.by === "name" && order.flow[0].value === "first-to-last")
+      return a.name.localeCompare(b.name);
+    if (order.by === "name" && order.flow[0].value === "last-to-first")
+      return b.name.localeCompare(a.name);
+
+    return new Date(a.date_added).getTime() - new Date(b.date_added).getTime();
+  };
+  const sortedMoneys = moneys.sort((a, b) => sortFn(a, b));
+  const {
+    setOpenDialog,
+    setMoneyInAction,
+    setTypeOfAction,
+    setMoneyInActionNewData,
+  } = useActionConfirmStore();
+  const route = useRouter();
+
+  return sortedMoneys.map((money) => (
+    <MoneyCard
+      money={money}
+      key={money.id}
+      doAction={(type) => {
+        if (type === "remove") {
+          setTypeOfAction("removeMoney");
+          setMoneyInAction(money);
+          setMoneyInActionNewData(undefined);
+          setOpenDialog(true);
+        }
+        if (type === "edit") {
+          route.push(`/edit-money?moneyId=${money.id}`);
+        }
+      }}
+    />
+  ));
+}

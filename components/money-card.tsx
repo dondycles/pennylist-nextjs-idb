@@ -10,6 +10,8 @@ import { Ellipsis, Pencil, Trash } from "lucide-react";
 import { amountFormat } from "@/lib/utils";
 import Image from "next/image";
 import { FINTECHS } from "@/lib/contants";
+import { useListSettingsStore } from "@/store/ListSettings";
+import CurrencySign from "./currency-sign";
 
 export default function MoneyCard({
   money,
@@ -26,7 +28,7 @@ export default function MoneyCard({
   return (
     <div
       key={money.id}
-      className="rounded-4xl flex bg-muted dark:bg-muted/25 w-full p-6 justify-between relative overflow-hidden"
+      className="rounded-4xl flex bg-muted/75 dark:bg-muted/25 w-full p-6 justify-between relative overflow-hidden"
     >
       <div className="grid z-2">
         <p className="font-black text-muted-foreground truncate">
@@ -41,7 +43,8 @@ export default function MoneyCard({
           ))}
         </p>
         <p className="font-black text-4xl truncate">
-          {amountFormat.format(money.amount)}
+          <CurrencySign />
+          <span>{amountFormat(money.amount)}</span>
         </p>
       </div>
       {withOptions ? (

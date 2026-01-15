@@ -45,15 +45,16 @@ import { useActionConfirmStore } from "@/store/ActionConfirm";
 import { useState } from "react";
 import { useHistoryStore } from "@/store/History";
 import { toast } from "sonner";
+import _ from "lodash";
 
 export default function MoneyForm({
-  money,
+  targetMoney,
   action,
 }: {
-  money?: Money;
+  targetMoney?: Money;
   action: "add" | "edit";
 }) {
-  const date = String(new Date());
+  const date = new Date().toISOString();
   const router = useRouter();
   const { add, moneys } = useMoneysStore();
   const { addHistory } = useHistoryStore();
@@ -65,8 +66,8 @@ export default function MoneyForm({
   } = useActionConfirmStore();
   const form = useForm<z.infer<typeof moneyFormSchema>>({
     resolver: zodResolver(moneyFormSchema),
-    defaultValues: money
-      ? money
+    defaultValues: targetMoney
+      ? { ...targetMoney, date_edited: date }
       : {
           id: nanoid(),
           name: "",
@@ -90,6 +91,7 @@ export default function MoneyForm({
   });
 
   function onSubmit(money: z.infer<typeof moneyFormSchema>) {
+    const total_money = _.sum(moneys.map((money) => Number(money.amount)));
     addMoney(money);
     if (action === "edit") {
       if (!moneys.find((m) => m.id === money.id))
@@ -103,6 +105,16 @@ export default function MoneyForm({
       id: nanoid(),
       money_id: money.id,
       type: action,
+      snapshot: {
+        before: { money: targetMoney, total_money },
+        after: {
+          money: form.getValues(),
+          total_money:
+            Number(total_money) -
+            Number(targetMoney ? targetMoney.amount : 0) +
+            Number(form.getValues("amount")),
+        },
+      },
     });
   }
 
@@ -114,7 +126,7 @@ export default function MoneyForm({
 
   function editMoney() {
     if (action !== "edit") return;
-    setMoneyInAction(money);
+    setMoneyInAction(targetMoney);
     setMoneyInActionNewData(form.getValues());
     setTypeOfAction("editMoney");
     setOpenDialog(true);

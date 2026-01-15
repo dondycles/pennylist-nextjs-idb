@@ -6,6 +6,8 @@ import { History } from "@/types/History";
 export type HistoryStore = {
   histories: History[];
   addHistory: (history: History) => void;
+  _hasHydrated: boolean;
+  setHasHydrated: (state: boolean) => void;
 };
 
 export const useHistoryStore = create<HistoryStore>()(
@@ -16,10 +18,15 @@ export const useHistoryStore = create<HistoryStore>()(
         set(({ histories }) => {
           return { histories: [...histories, h] };
         }),
+      _hasHydrated: false,
+      setHasHydrated: (state) => set({ _hasHydrated: state }),
     }),
     {
       name: "histories",
       storage: createJSONStorage(() => idb),
+      onRehydrateStorage: (state) => {
+        return () => state.setHasHydrated(true);
+      },
     }
   )
 );

@@ -35,5 +35,5 @@ export default function EditMoneyComponent({
       </main>
     );
 
-  return <MoneyForm action="edit" money={targetMoney} />;
+  return <MoneyForm action="edit" targetMoney={targetMoney} />;
 }

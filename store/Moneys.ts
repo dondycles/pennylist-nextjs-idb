@@ -8,7 +8,7 @@ export type MoneysStore = {
   add: (money: Money) => void;
   remove: (money: Money) => void;
   edit: (money: Money) => void;
-  _hasHydrated: boolean; // Tracking variable
+  _hasHydrated: boolean;
   setHasHydrated: (state: boolean) => void;
 };
 

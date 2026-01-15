@@ -17,7 +17,7 @@ export const moneyFormSchema = z.object({
       })
     )
     .optional(),
-  date_added: z.string(),
+  date_added: z.string().min(1, "Date added is required"),
   date_edited: z.string(),
 });
 
