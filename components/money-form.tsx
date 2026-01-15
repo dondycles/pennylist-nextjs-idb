@@ -91,6 +91,21 @@ export default function MoneyForm({
   });
 
   function onSubmit(money: z.infer<typeof moneyFormSchema>) {
+    const sanitizeMoney: Omit<z.infer<typeof moneyFormSchema>, "amount"> & {
+      amount: string;
+    } = {
+      ...money,
+      amount: String(money.amount),
+    };
+    if (
+      _.isEqual(
+        _.omit(sanitizeMoney, "date_edited"),
+        _.omit(targetMoney, "date_edited")
+      )
+    )
+      return toast.error("No Changes", {
+        description: "Make changes in order to edit.",
+      });
     const total_money = _.sum(moneys.map((money) => Number(money.amount)));
     addMoney(money);
     if (action === "edit") {

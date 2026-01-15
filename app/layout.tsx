@@ -59,7 +59,6 @@ export default function RootLayout({
                   description: "!text-muted-foreground !font-semibold",
                   icon: "!mr-4",
                 },
-                duration: 100000,
               }}
               richColors
             />
