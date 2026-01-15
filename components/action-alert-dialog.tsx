@@ -15,9 +15,13 @@ import MoneyCard from "./money-card";
 import { Button } from "./ui/button";
 import { ArrowDown } from "lucide-react";
 import { useRouter } from "next/navigation";
+import _ from "lodash";
+import { useHistoryStore } from "@/store/History";
+import { nanoid } from "nanoid";
 export default function ActionAlertDialog() {
   const router = useRouter();
-  const { remove, edit } = useMoneysStore();
+  const { remove, edit, moneys } = useMoneysStore();
+  const { addHistory } = useHistoryStore();
   const {
     openDialog,
     moneyInAction,
@@ -28,6 +32,9 @@ export default function ActionAlertDialog() {
     setTypeOfAction,
     setMoneyInActionNewData,
   } = useActionConfirmStore();
+
+  const total_money = _.sum(moneys.map((money) => Number(money.amount)));
+  const date = new Date().toISOString();
 
   const reset = () => {
     setMoneyInAction(undefined);
@@ -64,11 +71,41 @@ export default function ActionAlertDialog() {
               onClick={() => {
                 if (typeOfAction === "removeMoney") {
                   remove(moneyInAction);
+                  addHistory({
+                    date_added: date,
+                    id: nanoid(),
+                    money_id: moneyInAction.id,
+                    type: "add",
+                    snapshot: {
+                      before: { money: moneyInAction, total_money },
+                      after: {
+                        money: { ...moneyInAction, amount: 0 },
+                        total_money:
+                          Number(total_money) - Number(moneyInAction.amount),
+                      },
+                    },
+                  });
                   reset();
                 }
                 if (typeOfAction === "editMoney") {
                   if (!moneyInActionNewData) return reset();
                   edit(moneyInActionNewData);
+                  addHistory({
+                    date_added: date,
+                    id: nanoid(),
+                    money_id: moneyInAction.id,
+                    type: "add",
+                    snapshot: {
+                      before: { money: moneyInAction, total_money },
+                      after: {
+                        money: moneyInActionNewData,
+                        total_money:
+                          Number(total_money) -
+                          Number(moneyInAction.amount) +
+                          Number(moneyInActionNewData.amount),
+                      },
+                    },
+                  });
                   reset();
                   router.push("/list");
                 }

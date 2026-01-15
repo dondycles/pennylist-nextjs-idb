@@ -106,8 +106,9 @@ export default function MoneyForm({
       return toast.error("No Changes", {
         description: "Make changes in order to edit.",
       });
-    const total_money = _.sum(moneys.map((money) => Number(money.amount)));
-    addMoney(money);
+
+    if (action === "add") addMoney(money);
+
     if (action === "edit") {
       if (!moneys.find((m) => m.id === money.id))
         return toast.error("Invalid Money", {
@@ -115,11 +116,17 @@ export default function MoneyForm({
         });
       editMoney();
     }
+  }
+
+  function addMoney(money: z.infer<typeof moneyFormSchema>) {
+    if (action !== "add") return;
+    const total_money = _.sum(moneys.map((money) => Number(money.amount)));
+    add(money);
     addHistory({
       date_added: date,
       id: nanoid(),
       money_id: money.id,
-      type: action,
+      type: "add",
       snapshot: {
         before: { money: targetMoney, total_money },
         after: {
@@ -131,11 +138,6 @@ export default function MoneyForm({
         },
       },
     });
-  }
-
-  function addMoney(money: z.infer<typeof moneyFormSchema>) {
-    if (action !== "add") return;
-    add(money);
     router.push("/list");
   }
 
