@@ -22,6 +22,8 @@ import { useState } from "react";
 import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
 import Loader from "./loader";
+import { Label } from "./ui/label";
+import { Field, FieldLabel } from "./ui/field";
 export default function ActionAlertDialog() {
   const router = useRouter();
   const { remove, edit, moneys } = useMoneysStore();
@@ -76,12 +78,15 @@ export default function ActionAlertDialog() {
                 <>
                   <ArrowDown className="mx-auto text-muted-foreground size-5" />
                   <MoneyCard withOptions={false} money={moneyInActionNewData} />
-                  <Textarea
-                    value={reason}
-                    onChange={(v) => setReason(v.currentTarget.value)}
-                    className="mt-4"
-                    placeholder="Reason of modification (Optional but helpful soon)"
-                  />
+                  <Field className="mt-4">
+                    <FieldLabel htmlFor="reason">Reason</FieldLabel>
+                    <Textarea
+                      id="reason"
+                      value={reason}
+                      onChange={(v) => setReason(v.currentTarget.value)}
+                      placeholder="Reason of modification (Optional but helpful soon)"
+                    />
+                  </Field>
                 </>
               ) : null}
             </div>
