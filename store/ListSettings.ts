@@ -25,7 +25,7 @@ export const useListSettingsStore = create<ListSettingsStore>()(
         }),
       _hasHydrated: false,
       setHasHydrated: (state) => set({ _hasHydrated: state }),
-      currency: "php",
+      currency: "PHP",
       setCurrency: (currency) => set({ currency }),
     }),
     {
