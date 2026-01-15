@@ -270,7 +270,10 @@ export default function MoneyForm({
         <FieldSet className="gap-3">
           <Field orientation="horizontal">
             <FieldContent>
-              <FieldLegend variant="label" className="m-0">
+              <FieldLegend
+                variant="label"
+                className="m-0 font-black text-muted-foreground"
+              >
                 Tags?
               </FieldLegend>
               <FieldDescription>
