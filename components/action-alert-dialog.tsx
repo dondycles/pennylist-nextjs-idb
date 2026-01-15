@@ -91,8 +91,8 @@ export default function ActionAlertDialog() {
               ) : null}
             </div>
             <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <Button asChild variant="destructive">
+              <AlertDialogCancel className="flex-1">Cancel</AlertDialogCancel>
+              <Button asChild variant="destructive" className="flex-1">
                 <AlertDialogAction
                   onClick={() => {
                     if (typeOfAction === "removeMoney") {
