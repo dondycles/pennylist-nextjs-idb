@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import Loader from "@/components/loader";
 import { Metadata } from "next";
-import EditMoneyComponent from "@/app/(forms)/edit-money/_component";
+import EditMoneyComponent from "@/app/(forms)/edit-money/component";
 
 export const metadata: Metadata = {
   title: "Edit Money",
