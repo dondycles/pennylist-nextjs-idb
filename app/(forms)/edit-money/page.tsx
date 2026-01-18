@@ -1,7 +1,7 @@
-import EditMoneyComponent from "./_component";
 import { Suspense } from "react";
 import Loader from "@/components/loader";
 import { Metadata } from "next";
+import EditMoneyComponent from "./component";
 
 export const metadata: Metadata = {
   title: "Edit Money",
