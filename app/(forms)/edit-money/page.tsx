@@ -1,6 +1,11 @@
 import EditMoneyComponent from "./_component";
 import { Suspense } from "react";
 import Loader from "@/components/loader";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Edit Money",
+};
 
 export default async function EditMoneyPage({
   searchParams,

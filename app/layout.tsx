@@ -1,5 +1,5 @@
 import "./globals.css";
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { ThemeProvider } from "@/providers/theme";
 import QueryProvider from "@/providers/query";
 import localFont from "next/font/local";
@@ -30,11 +30,49 @@ const gilroy = localFont({
   ],
 });
 
+const APP_NAME = "Pennylist App";
+const APP_DEFAULT_TITLE = "Pennylist";
+const APP_TITLE_TEMPLATE = "%s | Pennylist";
+const APP_DESCRIPTION = "List every pennies you have on Pennylist.";
+
 export const metadata: Metadata = {
-  title: "pennylist | List every pennies you have on pennylist.",
-  description: "List every pennies you have on pennylist.",
+  applicationName: APP_NAME,
+  title: {
+    default: APP_DEFAULT_TITLE,
+    template: APP_TITLE_TEMPLATE,
+  },
+  description: APP_DESCRIPTION,
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: APP_DEFAULT_TITLE,
+    // startUpImage: [],
+  },
+  formatDetection: {
+    telephone: false,
+  },
+  openGraph: {
+    type: "website",
+    siteName: APP_NAME,
+    title: {
+      default: APP_DEFAULT_TITLE,
+      template: APP_TITLE_TEMPLATE,
+    },
+    description: APP_DESCRIPTION,
+  },
+  twitter: {
+    card: "summary",
+    title: {
+      default: APP_DEFAULT_TITLE,
+      template: APP_TITLE_TEMPLATE,
+    },
+    description: APP_DESCRIPTION,
+  },
 };
 
+export const viewport: Viewport = {
+  themeColor: "#FFFFFF",
+};
 export default function RootLayout({
   children,
 }: Readonly<{

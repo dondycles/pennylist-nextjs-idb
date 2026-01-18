@@ -31,11 +31,11 @@ export default function Home() {
         />
         <div className="flex flex-col items-center gap-6 text-center ">
           <h1 className="text-3xl sm:text-5xl font-black sm:leading-12">
-            The simplest list for every pennies you own - pennylist.
+            The simplest list for every pennies you own - Pennylist.
           </h1>
           <p className="max-w-md text-muted-foreground">
             Looking for a basic tool to keep track of your wealth? Give
-            pennylist a try!
+            Pennylist a try!
           </p>
         </div>
         <Button asChild>
