@@ -81,7 +81,7 @@ export default function ActionAlertDialog() {
                     <Textarea
                       id="reason"
                       value={reason}
-                      onChange={(v) => setReason(v.currentTarget.value)}
+                      onChange={(v) => setReason(v.target.value)}
                       placeholder="Reason of modification (Optional but helpful soon)"
                     />
                   </Field>

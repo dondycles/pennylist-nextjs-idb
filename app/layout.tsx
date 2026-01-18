@@ -5,6 +5,8 @@ import QueryProvider from "@/providers/query";
 import localFont from "next/font/local";
 import { Toaster } from "@/components/ui/sonner";
 import ActionAlertDialog from "@/components/action-alert-dialog";
+import { SerwistProvider } from "@/providers/serwist";
+
 const gilroy = localFont({
   src: [
     {
@@ -81,27 +83,29 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${gilroy.className} antialiased`}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <QueryProvider>
-            {children}
-            <ActionAlertDialog />
-            <Toaster
-              toastOptions={{
-                classNames: {
-                  title: "!text-base !font-bold",
-                  description: "!text-muted-foreground !font-semibold",
-                  icon: "!mr-4",
-                },
-              }}
-              richColors
-            />
-          </QueryProvider>
-        </ThemeProvider>
+        <SerwistProvider swUrl="/serwist/sw.js">
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <QueryProvider>
+              {children}
+              <ActionAlertDialog />
+              <Toaster
+                toastOptions={{
+                  classNames: {
+                    title: "!text-base !font-bold",
+                    description: "!text-muted-foreground !font-semibold",
+                    icon: "!mr-4",
+                  },
+                }}
+                richColors
+              />
+            </QueryProvider>
+          </ThemeProvider>
+        </SerwistProvider>
       </body>
     </html>
   );
