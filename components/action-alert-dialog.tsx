@@ -19,10 +19,8 @@ import _ from "lodash";
 import { useHistoryStore } from "@/store/History";
 import { nanoid } from "nanoid";
 import { useState } from "react";
-import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
 import Loader from "./loader";
-import { Label } from "./ui/label";
 import { Field, FieldLabel } from "./ui/field";
 export default function ActionAlertDialog() {
   const router = useRouter();
