@@ -8,7 +8,6 @@ import {
   FieldGroup,
   FieldLabel,
   FieldLegend,
-  FieldSeparator,
   FieldSet,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -100,7 +99,7 @@ export default function MoneyForm({
     if (
       _.isEqual(
         _.omit(sanitizeMoney, "date_edited"),
-        _.omit(targetMoney, "date_edited")
+        _.omit(targetMoney, "date_edited"),
       )
     )
       return toast.error("No Changes", {
@@ -192,6 +191,7 @@ export default function MoneyForm({
           )}
         />
         <Controller
+          
           name="fintech"
           control={form.control}
           render={({ field, fieldState }) => (
@@ -219,18 +219,18 @@ export default function MoneyForm({
                     role="combobox"
                     className={cn(
                       "py-0 px-3 text-sm font-bold",
-                      !field.value && "text-muted-foreground"
+                      !field.value && "text-muted-foreground",
                     )}
                   >
                     {field.value
                       ? FINTECHS.find(
-                          (fintech) => fintech.value === field.value
+                          (fintech) => fintech.value === field.value,
                         )?.label
                       : "Select fintech"}
                     <ChevronsUpDown className="opacity-50" />
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-[200px] p-0" align="end">
+                <PopoverContent className="w-50 p-0" align="end">
                   <Command className="rounded-4xl">
                     <CommandInput placeholder="Search fintech..." />
                     <CommandList>
@@ -245,7 +245,7 @@ export default function MoneyForm({
                                 "fintech",
                                 fintech.value === form.getValues("fintech")
                                   ? ""
-                                  : fintech.value
+                                  : fintech.value,
                               );
                               setOpenSelectFintech(false);
                             }}
@@ -256,7 +256,7 @@ export default function MoneyForm({
                                 "ml-auto",
                                 fintech.value === field.value
                                   ? "opacity-100"
-                                  : "opacity-0"
+                                  : "opacity-0",
                               )}
                             />
                           </CommandItem>

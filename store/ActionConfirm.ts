@@ -4,9 +4,14 @@ import type { Money } from "@/types/Money";
 export type ActionConfirmStore = {
   moneyInAction: Money | undefined;
   setMoneyInAction: (money: Money | undefined) => void;
-  typeOfAction: "removeMoney" | "saveMoney" | "editMoney" | undefined;
+  typeOfAction:
+    | "removeMoney"
+    | "saveMoney"
+    | "editMoney"
+    | "transferMoney"
+    | undefined;
   setTypeOfAction: (
-    type: "removeMoney" | "saveMoney" | "editMoney" | undefined
+    type: "removeMoney" | "saveMoney" | "editMoney" | undefined,
   ) => void;
   openDialog: boolean;
   setOpenDialog: (state: boolean) => void;
