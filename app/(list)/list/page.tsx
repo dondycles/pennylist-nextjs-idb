@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import ListPageComponent from "@/components/list-component";
+import ListPageComponent from "@/app/(list)/list/_component";
 
 export const metadata: Metadata = {
   title: "List",

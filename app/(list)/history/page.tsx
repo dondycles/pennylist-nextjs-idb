@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import HistoryPageComponent from "@/components/history-component";
+import HistoryPageComponent from "@/app/(list)/history/_component";
 export const metadata: Metadata = {
   title: "History",
 };
