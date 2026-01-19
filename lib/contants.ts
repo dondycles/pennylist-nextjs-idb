@@ -10,14 +10,14 @@ import uno from "@/imgs/fintechs/uno.webp";
 import gotyme from "@/imgs/fintechs/gotyme.webp";
 
 export const FINTECHS = [
-  { label: "GCash", value: "gc", bg: gcash, color: "var(--transparent)" }, // Bright Blue
-  { label: "Maya", value: "my", bg: maya, color: "var(--transparent)" }, // Neon Green
+  { label: "GCash", value: "gc", bg: gcash, color: "var(--gcash)" }, // Bright Blue
+  { label: "Maya", value: "my", bg: maya, color: "var(--maya)" }, // Neon Green
   { label: "OwnBank", value: "ob", bg: ownbank, color: "var(--ownbank)" }, // Deep Blue
-  { label: "PayPal", value: "pp", bg: paypal, color: "var(--transparent)" }, // Navy Blue
-  { label: "MariBank", value: "mb", bg: maribank, color: "var(--transparent)" }, // Shopee/Mari Orange
-  { label: "BDO", value: "bdo", bg: bdo, color: "var(--transparent)" }, // Royal Blue
-  { label: "BPI", value: "bpi", bg: bpi, color: "var(--transparent)" }, // Maroon Red
-  { label: "CIMB Bank", value: "cimb", bg: cimb, color: "#ff0000" }, // Red
+  { label: "PayPal", value: "pp", bg: paypal, color: "var(--paypal)" }, // Navy Blue
+  { label: "MariBank", value: "mb", bg: maribank, color: "var(--maribank)" }, // Shopee/Mari Orange
+  { label: "BDO", value: "bdo", bg: bdo, color: "var(--bdo)" }, // Royal Blue
+  { label: "BPI", value: "bpi", bg: bpi, color: "var(--bpi)" }, // Maroon Red
+  { label: "CIMB Bank", value: "cimb", bg: cimb, color: "var(--cimb)" }, // Red
   {
     label: "UNO Digital Bank",
     value: "uno",

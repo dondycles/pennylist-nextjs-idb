@@ -82,8 +82,16 @@
     --sidebar-ring: oklch(0.708 0 0);
     --ownbank: oklch(0.269 0 0);
     --uno: oklch(0.269 0 0);
+    --cimb: oklch(0.577 0.245 27.325);
+    --maribank: oklch(0.8822 0.1898 44.19);
+    --bdo: oklch(0.7457 0.1898 260.97);
+    --bpi: oklch(0.8205 0.1013 14.21);
+    --gcash: oklch(0.7823 0.1112 257.77);
+    --maya: oklch(0.5 0.1178 169.1);
+    --ownbank: oklch(0.4935 0.0761 145.6);
+    --paypal: oklch(0.7902 0.0574 251.36);
+    --uno: oklch(0.7902 0.0574 288.75);
 }
-
 .dark {
     --background: oklch(0.145 0 0);
     --foreground: oklch(0.985 0 0);
@@ -118,6 +126,15 @@
     --sidebar-ring: oklch(0.556 0 0);
     --ownbank: oklch(0 0 0 0);
     --uno: oklch(0 0 0 0);
+    --cimb: oklch(0.577 0.245 27.325);
+    --maribank: oklch(0.8822 0.1898 44.19);
+    --bdo: oklch(0.7457 0.1898 260.97);
+    --bpi: oklch(0.8205 0.1013 14.21);
+    --gcash: oklch(0.7823 0.1112 257.77);
+    --maya: oklch(0.5 0.1178 169.1);
+    --ownbank: oklch(0.4935 0.0761 145.6);
+    --paypal: oklch(0.7902 0.0574 251.36);
+    --uno: oklch(0.7902 0.0574 288.75);
 }
 
 @layer base {
