@@ -30,21 +30,21 @@ export default function ActionAlertDialog() {
 
   const {
     openDialog,
-    moneyInAction,
-    moneyInActionNewData,
+    moneyInActionForEditOrRemove,
+    moneyInActionNewDataForEditOrRemove,
     typeOfAction,
     setOpenDialog,
-    setMoneyInAction,
+    setMoneyInActionForEditOrRemove,
     setTypeOfAction,
-    setMoneyInActionNewData,
+    setMoneyInActionNewDataForEditOrRemove,
   } = useActionConfirmStore();
 
   const total_money = _.sum(moneys.map((money) => Number(money.amount)));
   const date = new Date().toISOString();
 
   const reset = () => {
-    setMoneyInAction(undefined);
-    setMoneyInActionNewData(undefined);
+    setMoneyInActionForEditOrRemove(undefined);
+    setMoneyInActionNewDataForEditOrRemove(undefined);
     setTypeOfAction(undefined);
     setReason(undefined);
     setOpenDialog(false);
@@ -66,16 +66,22 @@ export default function ActionAlertDialog() {
             This action cannot be undone.
           </AlertDialogDescription>
         </AlertDialogHeader>
-        {moneyInAction ? (
+        {moneyInActionForEditOrRemove ? (
           <>
             <div className="flex flex-col gap-2">
-              {moneyInAction ? (
-                <MoneyCard withOptions={false} money={moneyInAction} />
+              {moneyInActionForEditOrRemove ? (
+                <MoneyCard
+                  withOptions={false}
+                  money={moneyInActionForEditOrRemove}
+                />
               ) : null}
-              {moneyInActionNewData ? (
+              {moneyInActionNewDataForEditOrRemove ? (
                 <>
                   <ArrowDown className="mx-auto text-muted-foreground size-5" />
-                  <MoneyCard withOptions={false} money={moneyInActionNewData} />
+                  <MoneyCard
+                    withOptions={false}
+                    money={moneyInActionNewDataForEditOrRemove}
+                  />
                   <Field className="mt-4">
                     <FieldLabel htmlFor="reason">Reason</FieldLabel>
                     <Textarea
@@ -94,40 +100,51 @@ export default function ActionAlertDialog() {
                 <AlertDialogAction
                   onClick={() => {
                     if (typeOfAction === "removeMoney") {
-                      remove(moneyInAction);
+                      remove(moneyInActionForEditOrRemove);
                       addHistory({
                         date_added: date,
                         id: nanoid(),
-                        money_id: moneyInAction.id,
+                        money_id: moneyInActionForEditOrRemove.id,
                         type: "add",
                         snapshot: {
-                          before: { money: moneyInAction, total_money },
+                          before: {
+                            money: moneyInActionForEditOrRemove,
+                            total_money,
+                          },
                           after: {
-                            money: { ...moneyInAction, amount: 0 },
+                            money: {
+                              ...moneyInActionForEditOrRemove,
+                              amount: 0,
+                            },
                             total_money:
                               Number(total_money) -
-                              Number(moneyInAction.amount),
+                              Number(moneyInActionForEditOrRemove.amount),
                           },
                         },
                       });
                       reset();
                     }
                     if (typeOfAction === "editMoney") {
-                      if (!moneyInActionNewData) return reset();
-                      edit(moneyInActionNewData);
+                      if (!moneyInActionNewDataForEditOrRemove) return reset();
+                      edit(moneyInActionNewDataForEditOrRemove);
                       addHistory({
                         date_added: date,
                         id: nanoid(),
-                        money_id: moneyInAction.id,
+                        money_id: moneyInActionForEditOrRemove.id,
                         type: "add",
                         snapshot: {
-                          before: { money: moneyInAction, total_money },
+                          before: {
+                            money: moneyInActionForEditOrRemove,
+                            total_money,
+                          },
                           after: {
-                            money: moneyInActionNewData,
+                            money: moneyInActionNewDataForEditOrRemove,
                             total_money:
                               Number(total_money) -
-                              Number(moneyInAction.amount) +
-                              Number(moneyInActionNewData.amount),
+                              Number(moneyInActionForEditOrRemove.amount) +
+                              Number(
+                                moneyInActionNewDataForEditOrRemove.amount,
+                              ),
                           },
                         },
                         reason,

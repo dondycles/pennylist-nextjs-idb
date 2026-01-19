@@ -58,10 +58,10 @@ export default function MoneyForm({
   const { add, moneys } = useMoneysStore();
   const { addHistory } = useHistoryStore();
   const {
-    setMoneyInAction,
+    setMoneyInActionForEditOrRemove,
     setOpenDialog,
     setTypeOfAction,
-    setMoneyInActionNewData,
+    setMoneyInActionNewDataForEditOrRemove,
   } = useActionConfirmStore();
   const form = useForm<z.infer<typeof moneyFormSchema>>({
     resolver: zodResolver(moneyFormSchema),
@@ -142,8 +142,8 @@ export default function MoneyForm({
 
   function editMoney() {
     if (action !== "edit") return;
-    setMoneyInAction(targetMoney);
-    setMoneyInActionNewData(form.getValues());
+    setMoneyInActionForEditOrRemove(targetMoney);
+    setMoneyInActionNewDataForEditOrRemove(form.getValues());
     setTypeOfAction("editMoney");
     setOpenDialog(true);
   }
@@ -154,7 +154,7 @@ export default function MoneyForm({
       onSubmit={form.handleSubmit(onSubmit)}
       className="max-w-lg mx-auto w-full px-4 pb-24 flex-1 grid overflow-auto"
     >
-      <FieldGroup className="h-full ">
+      <FieldGroup className="h-full">
         <Controller
           name="name"
           control={form.control}
@@ -191,7 +191,6 @@ export default function MoneyForm({
           )}
         />
         <Controller
-          
           name="fintech"
           control={form.control}
           render={({ field, fieldState }) => (
@@ -230,9 +229,16 @@ export default function MoneyForm({
                     <ChevronsUpDown className="opacity-50" />
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-50 p-0" align="end">
+                <PopoverContent
+                  autoFocus={false}
+                  className="w-50 p-0"
+                  align="end"
+                >
                   <Command className="rounded-4xl">
-                    <CommandInput placeholder="Search fintech..." />
+                    <CommandInput
+                      autoFocus={false}
+                      placeholder="Search fintech..."
+                    />
                     <CommandList>
                       <CommandEmpty>No fintech found.</CommandEmpty>
                       <CommandGroup>

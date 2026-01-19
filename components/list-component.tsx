@@ -37,9 +37,9 @@ export default function ListPageComponent() {
   const sortedMoneys = moneys.sort((a, b) => sortFn(a, b));
   const {
     setOpenDialog,
-    setMoneyInAction,
+    setMoneyInActionForEditOrRemove,
     setTypeOfAction,
-    setMoneyInActionNewData,
+    setMoneyInActionNewDataForEditOrRemove,
   } = useActionConfirmStore();
   const route = useRouter();
 
@@ -50,12 +50,15 @@ export default function ListPageComponent() {
       doAction={(type) => {
         if (type === "remove") {
           setTypeOfAction("removeMoney");
-          setMoneyInAction(money);
-          setMoneyInActionNewData(undefined);
+          setMoneyInActionForEditOrRemove(money);
+          setMoneyInActionNewDataForEditOrRemove(undefined);
           setOpenDialog(true);
         }
         if (type === "edit") {
           route.push(`/edit-money?moneyId=${money.id}`);
+        }
+        if (type === "transfer") {
+          route.push(`/transfer-money?senderMoneyId=${money.id}`);
         }
       }}
     />

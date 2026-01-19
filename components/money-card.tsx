@@ -6,7 +6,7 @@ import {
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
 import { Button } from "./ui/button";
-import { Ellipsis, Pencil, Trash } from "lucide-react";
+import { Ellipsis, Pencil, Plane, Trash } from "lucide-react";
 import Image from "next/image";
 import { FINTECHS } from "@/lib/contants";
 import CurrencySign from "./currency-sign";
@@ -18,11 +18,11 @@ export default function MoneyCard({
   withOptions = true,
 }: {
   money: Money;
-  doAction?: (type: "edit" | "remove") => void;
+  doAction?: (type: "edit" | "remove" | "transfer") => void;
   withOptions?: boolean;
 }) {
   const fintechData = FINTECHS.find(
-    (fintech) => fintech.value === money.fintech
+    (fintech) => fintech.value === money.fintech,
   );
   return (
     <div
@@ -65,6 +65,14 @@ export default function MoneyCard({
             >
               <Pencil />
               Edit
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => {
+                doAction!("transfer");
+              }}
+            >
+              <Plane />
+              Transfer
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => {

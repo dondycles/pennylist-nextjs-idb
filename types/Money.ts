@@ -14,7 +14,7 @@ export const moneyFormSchema = z.object({
     .array(
       z.object({
         tag: z.string().min(1, "Tag it with at least 1 character."),
-      })
+      }),
     )
     .optional(),
   date_added: z.string().min(1, "Date added is required"),
@@ -22,3 +22,16 @@ export const moneyFormSchema = z.object({
 });
 
 export type Money = z.infer<typeof moneyFormSchema>;
+
+export const moneyForTransferFormSchema = moneyFormSchema.extend({
+  node: z.enum(["sender", "receiver"]).optional(),
+});
+
+export type MoneyForTransfer = z.infer<typeof moneyForTransferFormSchema>;
+
+export const moneyTransferFormSchema = z.object({
+  senderMoney: moneyForTransferFormSchema,
+  receiverMoneys: z
+    .array(moneyForTransferFormSchema)
+    .min(1, "At least one receiver is required"),
+});
