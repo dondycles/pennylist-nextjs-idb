@@ -4,7 +4,7 @@ import Loader from "@/components/loader";
 import MoneyForm from "@/components/money-form";
 import { useMoneysStore } from "@/store/Moneys";
 import { redirect } from "next/navigation";
-import MoneyDoesNotExist from "./money-does-not-exist";
+import MoneyDoesNotExist from "@/components/money-does-not-exist";
 
 export default function EditMoneyComponent({
   targetMoneyId,
