@@ -11,15 +11,11 @@ import {
   FieldSet,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 import * as z from "zod";
-import { Check, CheckCircle2, ChevronsUpDown, XIcon } from "lucide-react";
+import { CheckCircle2, ChevronsUpDown, XIcon } from "lucide-react";
 import {
   Command,
   CommandEmpty,
@@ -45,7 +41,6 @@ import { useState } from "react";
 import { useHistoryStore } from "@/store/History";
 import { toast } from "sonner";
 import _ from "lodash";
-import { Drawer, DrawerContent, DrawerTrigger } from "./ui/drawer";
 import BottomDrawer from "./bottom-drawer";
 import Image from "next/image";
 

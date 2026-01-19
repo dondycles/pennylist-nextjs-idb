@@ -6,20 +6,15 @@ import {
   FieldDescription,
   FieldError,
   FieldGroup,
-  FieldLabel,
   FieldLegend,
   FieldSet,
 } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Command as CommandPrimitive } from "cmdk";
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 import * as z from "zod";
-import { Check, CheckCircle2, ChevronsUpDown, XIcon } from "lucide-react";
+import { CheckCircle2, ChevronUp } from "lucide-react";
 import {
   Command,
   CommandEmpty,
@@ -29,64 +24,29 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { cn } from "@/lib/utils";
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupButton,
-  InputGroupInput,
-} from "@/components/ui/input-group";
-import {
-  Money,
-  MoneyForTransfer,
-  moneyTransferFormSchema,
-} from "@/types/Money";
+
+import { MoneyForTransfer, moneyTransferFormSchema } from "@/types/Money";
 import { useMoneysStore } from "@/store/Moneys";
-import { nanoid } from "nanoid";
-import { useRouter } from "next/navigation";
 import { FINTECHS } from "@/lib/contants";
-import { useActionConfirmStore } from "@/store/ActionConfirm";
-import { useState } from "react";
-import { useHistoryStore } from "@/store/History";
-import { toast } from "sonner";
-import _ from "lodash";
 import MoneyCard from "@/components/money-card";
-import { Label } from "@/components/ui/label";
 import BottomDrawer from "./bottom-drawer";
 import Image from "next/image";
+import CurrencySign from "./currency-sign";
+import Amount from "./amount";
 
-export default function TransferMoneyForm({
-  senderMoneyData,
-  action,
-}: {
-  senderMoneyData: MoneyForTransfer;
-  action: "add" | "edit";
-}) {
+export default function TransferMoneyForm() {
   const date = new Date().toISOString();
-  const router = useRouter();
   const { moneys } = useMoneysStore();
-  const { addHistory } = useHistoryStore();
-  const { setMoneysInActionForTransfer, moneysInActionForTransfer } =
-    useActionConfirmStore();
+
   const form = useForm<z.infer<typeof moneyTransferFormSchema>>({
     resolver: zodResolver(moneyTransferFormSchema),
     defaultValues: {
-      senderMoney: senderMoneyData
-        ? {
-            ...senderMoneyData,
-            date_edited: date,
-          }
-        : undefined,
+      senderMoney: undefined,
       receiverMoneys: undefined,
     },
   });
 
-  const [openSelectFintect, setOpenSelectFintech] = useState(false);
-
-  const {
-    fields: receiverMoneys,
-    append: appendReceiverMoney,
-    remove: removeReceiverMoney,
-  } = useFieldArray({
+  const { fields: receiverMoneys } = useFieldArray({
     control: form.control,
     name: "receiverMoneys",
   });
@@ -128,40 +88,36 @@ export default function TransferMoneyForm({
                   )}
                 </FieldContent>
                 <BottomDrawer
-                  onOpenChange={setOpenSelectFintech}
-                  open={openSelectFintect}
                   trigger={
                     <Button
-                      id="transfer-money-form-receiver-money-input"
+                      id="transfer-money-form-sender-money-input"
                       variant="secondary"
                       role="combobox"
-                      className={cn(
-                        "py-0 px-3 text-sm font-bold",
-                        !field.value && "text-muted-foreground",
-                      )}
+                      size="icon"
+                      className={cn(!field.value && "text-muted-foreground")}
                     >
-                      {field.value
-                        ? moneys.find((m) => m.id === field.value.id)?.name
-                        : "Select money"}
-                      <ChevronsUpDown className="opacity-50" />
+                      <ChevronUp />
                     </Button>
                   }
                   title="Select Sender Money"
                   desc="This is the money that will be sent to the receiver(s)."
                   content={
-                    <Command className="bg-transparent rounded-4xl **:data-[slot='command-input-wrapper']:max-w-lg **:data-[slot='command-input-wrapper']:w-full **:data-[slot='command-input-wrapper']:mx-auto">
+                    <ModifiedCommand>
                       <CommandInput placeholder="Search money..." />
                       <CommandList className="p-4 max-h-full">
                         <CommandEmpty>No money found.</CommandEmpty>
                         <CommandGroup className="max-h-full ">
-                          <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 gap-2 max-w-lg mx-auto ">
+                          <CellsWrapper>
                             {moneys.map((m) => (
                               <CommandItem
                                 value={m.name}
                                 key={m.id}
                                 onSelect={() => {
                                   form.setValue("senderMoney", m);
-                                  // setOpenSelectFintech(false);
+                                  form.setValue(
+                                    "receiverMoneys",
+                                    undefined as unknown as MoneyForTransfer[],
+                                  );
                                 }}
                                 className="aspect-square border rounded-4xl p-0 overflow-hidden"
                                 style={{
@@ -170,100 +126,18 @@ export default function TransferMoneyForm({
                                   )!.color,
                                 }}
                               >
-                                <div className="w-full h-full p-4 z-0 flex relative">
-                                  <p className="z-2 leading-none break-all line-clamp-2">
-                                    {m.name}
-                                  </p>
-                                  <CheckCircle2
-                                    className={cn(
-                                      "ml-auto z-2 absolute bottom-4 left-1/2 -translate-x-1/2 text-green-500 size-6 drop-shadow-lg bg-background rounded-full",
-                                      m.id === field.value?.id
-                                        ? "opacity-100"
-                                        : "opacity-0",
-                                    )}
-                                  />
-                                  {m.fintech ? (
-                                    <Image
-                                      src={
-                                        FINTECHS.find(
-                                          (f) => f.value === m.fintech,
-                                        )!.bg
-                                      }
-                                      className="m-auto -z-10  absolute object-center h-auto w-[calc(100%-2rem)] object-contain top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2"
-                                      alt={m.fintech}
-                                    />
-                                  ) : null}
-                                </div>
+                                <Cell
+                                  m={m}
+                                  checked={field.value?.id === m.id}
+                                />
                               </CommandItem>
                             ))}
-                          </div>
+                          </CellsWrapper>
                         </CommandGroup>
                       </CommandList>
-                    </Command>
+                    </ModifiedCommand>
                   }
                 />
-
-                {/*<Popover
-                  onOpenChange={setOpenSelectFintech}
-                  open={openSelectFintect}
-                  modal
-                >
-                  <PopoverTrigger asChild>
-                    <Button
-                      id="money-form-fintech-input"
-                      variant="secondary"
-                      role="combobox"
-                      className={cn(
-                        "py-0 px-3 text-sm font-bold",
-                        !field.value && "text-muted-foreground",
-                      )}
-                    >
-                      {field.value
-                        ? moneys.find((m) => m.id === field.value.id)?.name
-                        : "Select Money"}
-                      <ChevronsUpDown className="opacity-50" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-50 p-0" align="end">
-                    <Command className="rounded-4xl">
-                      <CommandInput placeholder="Search money..." />
-                      <CommandList>
-                        <CommandEmpty>No money found.</CommandEmpty>
-                        <CommandGroup>
-                          {moneys.map((m) => (
-                            <CommandItem
-                              value={m.name}
-                              key={m.id}
-                              onSelect={() => {
-                                // form.setValue(
-                                //   "senderMoney",
-                                //   m.id === form.getValues("senderMoney")?.id
-                                //     ? (undefined as unknown as MoneyForTransfer)
-                                //     : m,
-                                // );
-                                //
-                                router.push(
-                                  `/transfer-money?senderMoneyId=${m.id}`,
-                                );
-                                setOpenSelectFintech(false);
-                              }}
-                            >
-                              {m.name}
-                              <Check
-                                className={cn(
-                                  "ml-auto",
-                                  m.id === field.value?.id
-                                    ? "opacity-100"
-                                    : "opacity-0",
-                                )}
-                              />
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
-                      </CommandList>
-                    </Command>
-                  </PopoverContent>
-                </Popover>*/}
               </Field>
               {form.getValues("senderMoney") ? (
                 <MoneyCard
@@ -274,160 +148,103 @@ export default function TransferMoneyForm({
             </FieldSet>
           )}
         />
-
-        {/*<Controller
-          name="name"
-          control={form.control}
-          render={({ field, fieldState }) => (
-            <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor="money-form-name-input">Name</FieldLabel>
-              <Input
-                {...field}
-                id="money-form-name-input"
-                aria-invalid={fieldState.invalid}
-                placeholder="BDO Savings"
-                autoComplete="off"
-              />
-              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-            </Field>
-          )}
-        />
         <Controller
-          name="amount"
+          name="receiverMoneys"
           control={form.control}
-          render={({ field, fieldState }) => (
-            <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor="money-form-amount-input">Amount</FieldLabel>
-              <Input
-                {...field}
-                id="money-form-amount-input"
-                placeholder="00.00"
-                aria-invalid={fieldState.invalid}
-                autoComplete="off"
-                type="number"
-              />
-              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-            </Field>
-          )}
-        />
-        <Controller
-          name="fintech"
-          control={form.control}
-          render={({ field, fieldState }) => (
-            <Field orientation="horizontal" data-invalid={fieldState.invalid}>
-              <FieldContent>
-                <FieldLabel htmlFor="money-form-fintech-input">
-                  Fintech?
-                </FieldLabel>
-                <FieldDescription>
-                  Optional. But if it is, it would be cool tho.
-                </FieldDescription>
-                {fieldState.invalid && (
-                  <FieldError errors={[fieldState.error]} />
-                )}
-              </FieldContent>
-              <Popover
-                onOpenChange={setOpenSelectFintech}
-                open={openSelectFintect}
-                modal
-              >
-                <PopoverTrigger asChild>
-                  <Button
-                    id="money-form-fintech-input"
-                    variant="secondary"
-                    role="combobox"
-                    className={cn(
-                      "py-0 px-3 text-sm font-bold",
-                      !field.value && "text-muted-foreground",
-                    )}
+          render={({ field }) => (
+            <FieldSet className="gap-3">
+              <Field orientation="horizontal">
+                <FieldContent>
+                  <FieldLegend
+                    variant="label"
+                    className="m-0 font-black text-muted-foreground"
                   >
-                    {field.value
-                      ? FINTECHS.find(
-                          (fintech) => fintech.value === field.value,
-                        )?.label
-                      : "Select fintech"}
-                    <ChevronsUpDown className="opacity-50" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-50 p-0" align="end">
-                  <Command className="rounded-4xl">
-                    <CommandInput placeholder="Search fintech..." />
-                    <CommandList>
-                      <CommandEmpty>No fintech found.</CommandEmpty>
-                      <CommandGroup>
-                        {FINTECHS.map((fintech) => (
-                          <CommandItem
-                            value={fintech.label}
-                            key={fintech.value}
-                            onSelect={() => {
-                              form.setValue(
-                                "fintech",
-                                fintech.value === form.getValues("fintech")
-                                  ? ""
-                                  : fintech.value,
-                              );
-                              setOpenSelectFintech(false);
-                            }}
-                          >
-                            {fintech.label}
-                            <Check
-                              className={cn(
-                                "ml-auto",
-                                fintech.value === field.value
-                                  ? "opacity-100"
-                                  : "opacity-0",
-                              )}
-                            />
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
-                    </CommandList>
-                  </Command>
-                </PopoverContent>
-              </Popover>
-            </Field>
-          )}
-        />*/}
-        <FieldSet className="gap-3">
-          <Field orientation="horizontal">
-            <FieldContent>
-              <FieldLegend
-                variant="label"
-                className="m-0 font-black text-muted-foreground"
-              >
-                Receiver Moneys
-              </FieldLegend>
-              <FieldDescription>
-                Please select moneys to transfer to.
-              </FieldDescription>
-              {form.formState.errors.receiverMoneys?.root && (
-                <FieldError
-                  errors={[form.formState.errors.receiverMoneys.root]}
+                    Receiver Moneys
+                  </FieldLegend>
+                  <FieldDescription>
+                    Please select moneys to transfer to.
+                  </FieldDescription>
+                  {form.formState.errors.receiverMoneys?.root && (
+                    <FieldError
+                      errors={[form.formState.errors.receiverMoneys.root]}
+                    />
+                  )}
+                </FieldContent>
+                <BottomDrawer
+                  trigger={
+                    <Button
+                      id="transfer-money-form-receivers-money-input"
+                      variant="secondary"
+                      role="combobox"
+                      size="icon"
+                      className={cn(!field.value && "text-muted-foreground")}
+                    >
+                      <ChevronUp />
+                    </Button>
+                  }
+                  title="Select Receiver Moneys"
+                  desc="This are the moneys that will receive from the sender."
+                  content={
+                    <ModifiedCommand>
+                      <CommandInput placeholder="Search money..." />
+                      <CommandList className="p-4 max-h-full">
+                        <CommandEmpty>No money found.</CommandEmpty>
+                        <CommandGroup className="max-h-full ">
+                          <CellsWrapper>
+                            {moneys
+                              .filter(
+                                (m) => m.id !== form.watch("senderMoney")?.id,
+                              )
+                              .map((m) => (
+                                <CommandItem
+                                  value={m.name}
+                                  key={m.id}
+                                  onSelect={() => {
+                                    if (
+                                      field.value?.find((rm) => rm.id === m.id)
+                                    ) {
+                                      form.setValue("receiverMoneys", [
+                                        ...field.value.filter(
+                                          (rm) => rm.id !== m.id,
+                                        ),
+                                      ]);
+                                    } else {
+                                      form.setValue(
+                                        "receiverMoneys",
+                                        field.value ? [...field.value, m] : [m],
+                                      );
+                                    }
+
+                                    // form.setValue("senderMoney", m);
+                                    // setOpenSelectFintech(false);
+                                  }}
+                                  className="aspect-square border rounded-4xl p-0 overflow-hidden"
+                                  style={{
+                                    background: FINTECHS.find(
+                                      (f) => f.value === m.fintech,
+                                    )!.color,
+                                  }}
+                                >
+                                  <Cell
+                                    m={m}
+                                    checked={field.value?.some(
+                                      (rm) => rm.id === m.id,
+                                    )}
+                                  />
+                                </CommandItem>
+                              ))}
+                          </CellsWrapper>
+                        </CommandGroup>
+                      </CommandList>
+                    </ModifiedCommand>
+                  }
                 />
-              )}
-            </FieldContent>
-            <Field className="gap-2 w-fit" orientation="responsive">
-              <Button
-                type="button"
-                variant="secondary"
-                // onClick={() => appendReceiverMoney("")}
-                className="py-0 px-3 text-sm font-bold text-muted-foreground"
-              >
-                Select Money
-              </Button>
-              {/*{form.getValues("tags")?.length ? (
-                <Button
-                  type="button"
-                  variant="destructive"
-                  onClick={() => form.resetField("tags")}
-                  className="py-0 px-3 text-sm font-bold"
-                >
-                  Reset Receivers
-                </Button>
-              ) : null}*/}
-            </Field>
-          </Field>
-          {/*<FieldGroup className="flex flex-row flex-wrap gap-2">
+              </Field>
+
+              {receiverMoneys.map((m) => (
+                <MoneyCard key={m.id} money={m} withOptions={false} />
+              ))}
+              {/*<FieldGroup className="flex flex-row flex-wrap gap-2">
             {tags.map((tag, index) => (
               <Controller
                 key={tag.id}
@@ -469,7 +286,9 @@ export default function TransferMoneyForm({
               />
             ))}
           </FieldGroup>*/}
-        </FieldSet>
+            </FieldSet>
+          )}
+        />
       </FieldGroup>
       <Field
         orientation="horizontal"
@@ -486,10 +305,60 @@ export default function TransferMoneyForm({
         >
           Reset
         </Button>
-        <Button className="capitalize" type="submit" form="money-form">
-          {action}
+        <Button type="submit" form="money-form">
+          Transfer
         </Button>
       </Field>
     </form>
+  );
+}
+
+function Cell({ m, checked }: { m: MoneyForTransfer; checked: boolean }) {
+  return (
+    <div className="w-full h-full p-4 z-0 relative overflow-hidden ">
+      <p className="z-2 leading-none break-all line-clamp-2 text-muted-foreground text-base">
+        {m.name}
+      </p>
+      <p className="z-2 font-black text-base truncate">
+        <CurrencySign className="text-xs" />
+        <Amount amount={m.amount} />
+      </p>
+      <CheckCircle2
+        className={cn(
+          "ml-auto z-2 absolute bottom-4 left-1/2 -translate-x-1/2 text-green-500 size-6 drop-shadow-lg bg-background rounded-full",
+          checked ? "opacity-100" : "opacity-0",
+        )}
+      />
+      <div className="absolute -z-20 top-0 left-0 h-full w-full bg-linear-to-b from-background to-transparent"></div>
+      {m.fintech ? (
+        <Image
+          src={FINTECHS.find((f) => f.value === m.fintech)!.bg}
+          className="m-auto -z-10  absolute object-center h-4 w-auto max-w-16 object-contain bottom-4 left-1/2 -translate-x-1/2"
+          alt={m.fintech}
+        />
+      ) : null}
+    </div>
+  );
+}
+
+function CellsWrapper({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 gap-2 max-w-lg mx-auto">
+      {children}
+    </div>
+  );
+}
+
+function ModifiedCommand({
+  children,
+  ...props
+}: React.ComponentProps<typeof CommandPrimitive>) {
+  return (
+    <Command
+      className="bg-transparent rounded-4xl **:data-[slot='command-input-wrapper']:max-w-lg **:data-[slot='command-input-wrapper']:w-full **:data-[slot='command-input-wrapper']:mx-auto"
+      {...props}
+    >
+      {children}
+    </Command>
   );
 }

@@ -49,17 +49,44 @@ export default function ListsLayout({
         </div>
         <ButtonGroup className="mx-auto">
           {pathname === "/list" ? (
-            <Button variant="secondary" size="icon" asChild>
-              <Link href="/history">
-                <History />
-              </Link>
-            </Button>
+            <>
+              <Button variant="secondary" size="icon" asChild>
+                <Link href="/history">
+                  <History />
+                </Link>
+              </Button>
+              <Button variant="secondary" size="icon" asChild>
+                <Link href="/transfer-money">
+                  <Plane />
+                </Link>
+              </Button>
+            </>
           ) : pathname === "/history" ? (
-            <Button variant="secondary" size="icon" asChild>
-              <Link href="/list">
-                <List />
-              </Link>
-            </Button>
+            <>
+              <Button variant="secondary" size="icon" asChild>
+                <Link href="/list">
+                  <List />
+                </Link>
+              </Button>
+              <Button variant="secondary" size="icon" asChild>
+                <Link href="/transfer-money">
+                  <Plane />
+                </Link>
+              </Button>
+            </>
+          ) : pathname === "/transfer-money" ? (
+            <>
+              <Button variant="secondary" size="icon" asChild>
+                <Link href="/list">
+                  <List />
+                </Link>
+              </Button>
+              <Button variant="secondary" size="icon" asChild>
+                <Link href="/history">
+                  <History />
+                </Link>
+              </Button>
+            </>
           ) : null}
 
           <SettingsDialog>

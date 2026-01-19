@@ -57,9 +57,6 @@ export default function ListPageComponent() {
         if (type === "edit") {
           route.push(`/edit-money?moneyId=${money.id}`);
         }
-        if (type === "transfer") {
-          route.push(`/transfer-money?senderMoneyId=${money.id}`);
-        }
       }}
     />
   ));
