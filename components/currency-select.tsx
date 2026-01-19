@@ -53,7 +53,7 @@ const CurrencySelect = React.forwardRef<HTMLButtonElement, CurrencySelectProps>(
       valid = true,
       ...props
     },
-    ref
+    ref,
   ) => {
     const [open, setOpen] = React.useState(false);
 
@@ -88,13 +88,13 @@ const CurrencySelect = React.forwardRef<HTMLButtonElement, CurrencySelectProps>(
 
       // Convert the map to an array and sort by currency name
       return Array.from(currencyMap.values()).sort((a, b) =>
-        a.name.localeCompare(b.name)
+        a.name.localeCompare(b.name),
       );
     }, [currencies]);
 
     const handleValueChange = (newValue: string) => {
       const fullCurrencyData = uniqueCurrencies.find(
-        (curr) => curr.code === newValue
+        (curr) => curr.code === newValue,
       );
       if (fullCurrencyData) {
         setSelectedCurrency(fullCurrencyData);
@@ -136,7 +136,7 @@ const CurrencySelect = React.forwardRef<HTMLButtonElement, CurrencySelectProps>(
                     value={currency.code}
                     onSelect={(currentValue) => {
                       handleValueChange(
-                        currentValue === value ? "" : currentValue
+                        currentValue === value ? "" : currentValue,
                       );
                       setOpen(false);
                     }}
@@ -151,7 +151,7 @@ const CurrencySelect = React.forwardRef<HTMLButtonElement, CurrencySelectProps>(
                     <Check
                       className={cn(
                         "ml-auto",
-                        value === currency.code ? "opacity-100" : "opacity-0"
+                        value === currency.code ? "opacity-100" : "opacity-0",
                       )}
                     />
                   </CommandItem>
@@ -162,7 +162,7 @@ const CurrencySelect = React.forwardRef<HTMLButtonElement, CurrencySelectProps>(
         </PopoverContent>
       </Popover>
     );
-  }
+  },
 );
 
 CurrencySelect.displayName = "CurrencySelect";

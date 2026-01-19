@@ -6,7 +6,7 @@ import Amount from "./amount";
 
 export default function HistoryCard({ history }: { history: History }) {
   const fintechData = FINTECHS.find(
-    (fintech) => fintech.value === history.snapshot.after.money?.fintech
+    (fintech) => fintech.value === history.snapshot.after.money?.fintech,
   );
 
   const valueChanged =
