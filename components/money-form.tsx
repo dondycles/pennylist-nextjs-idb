@@ -233,12 +233,12 @@ export default function MoneyForm({
                 title="Select Fintech"
                 desc="Optional. But if it is, it would be cool tho."
                 content={
-                  <Command className="rounded-4xl **:data-[slot='command-input-wrapper']:max-w-lg **:data-[slot='command-input-wrapper']:w-full **:data-[slot='command-input-wrapper']:mx-auto">
+                  <Command className="bg-transparent rounded-4xl **:data-[slot='command-input-wrapper']:max-w-lg **:data-[slot='command-input-wrapper']:w-full **:data-[slot='command-input-wrapper']:mx-auto">
                     <CommandInput placeholder="Search fintech..." />
                     <CommandList className="p-4 max-h-full">
                       <CommandEmpty>No fintech found.</CommandEmpty>
-                      <CommandGroup>
-                        <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 gap-2 max-w-lg mx-auto">
+                      <CommandGroup className="max-h-full ">
+                        <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 gap-2 max-w-lg mx-auto ">
                           {FINTECHS.map((fintech) => (
                             <CommandItem
                               value={fintech.label}
