@@ -214,9 +214,9 @@ export default function MoneyForm({
                 open={openSelectFintect}
                 trigger={
                   <Button
-                    id="money-form-fintech-input"
                     variant="secondary"
                     role="combobox"
+                    aria-expanded={openSelectFintect}
                     className={cn(
                       "py-0 px-3 text-sm font-bold",
                       !field.value && "text-muted-foreground",
@@ -237,10 +237,16 @@ export default function MoneyForm({
                     <CommandInput placeholder="Search fintech..." />
                     <CommandList className="p-4 max-h-full">
                       <CommandEmpty>No fintech found.</CommandEmpty>
-                      <CommandGroup className="max-h-full ">
-                        <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 gap-2 max-w-lg mx-auto ">
+                      <CommandGroup>
+                        <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 gap-2 max-w-lg mx-auto p-1">
                           {FINTECHS.map((fintech) => (
                             <CommandItem
+                              aria-checked={
+                                fintech.value === form.getValues("fintech")
+                              }
+                              data-checked={
+                                fintech.value === form.getValues("fintech")
+                              }
                               value={fintech.label}
                               key={fintech.value}
                               onSelect={() => {
@@ -252,7 +258,7 @@ export default function MoneyForm({
                                 );
                                 // setOpenSelectFintech(false);
                               }}
-                              className="aspect-square border rounded-4xl p-0 overflow-hidden hover:scale-95"
+                              className="aspect-square border rounded-4xl p-0 overflow-hidden"
                               style={{ background: fintech.color }}
                             >
                               <div className="w-full h-full relative p-4 z-0 flex">
