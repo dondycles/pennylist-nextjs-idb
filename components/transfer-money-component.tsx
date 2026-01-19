@@ -4,7 +4,7 @@ import Loader from "@/components/loader";
 import { useMoneysStore } from "@/store/Moneys";
 import { redirect } from "next/navigation";
 import MoneyDoesNotExist from "@/components/money-does-not-exist";
-import TransferMoneyForm from "../imgs/fintechs/transfer-money-form";
+import TransferMoneyForm from "./ui/transfer-money-form";
 
 export default function TransferMoneyComponent({
   senderMoneyId,

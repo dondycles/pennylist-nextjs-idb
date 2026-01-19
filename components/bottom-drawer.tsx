@@ -6,20 +6,21 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "./ui/drawer";
-
+import { Drawer as DrawerPrimitive } from "vaul";
 export default function BottomDrawer({
   trigger,
   content,
   title,
   desc,
-}: {
+  ...props
+}: React.ComponentProps<typeof DrawerPrimitive.Root> & {
   trigger: React.ReactNode;
   content: React.ReactNode;
   title: string;
   desc: string;
 }) {
   return (
-    <Drawer>
+    <Drawer {...props}>
       <DrawerTrigger asChild>{trigger}</DrawerTrigger>
       <DrawerContent>
         <div className="pb-4 max-h-[90dvh] overflow-y-auto overflow-x-hidden">

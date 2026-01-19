@@ -19,7 +19,7 @@ import {
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 import * as z from "zod";
-import { Check, ChevronsUpDown, XIcon } from "lucide-react";
+import { Check, CheckCircle2, ChevronsUpDown, XIcon } from "lucide-react";
 import {
   Command,
   CommandEmpty,
@@ -45,6 +45,9 @@ import { useState } from "react";
 import { useHistoryStore } from "@/store/History";
 import { toast } from "sonner";
 import _ from "lodash";
+import { Drawer, DrawerContent, DrawerTrigger } from "./ui/drawer";
+import BottomDrawer from "./bottom-drawer";
+import Image from "next/image";
 
 export default function MoneyForm({
   targetMoney,
@@ -206,7 +209,80 @@ export default function MoneyForm({
                   <FieldError errors={[fieldState.error]} />
                 )}
               </FieldContent>
-              <Popover
+              <BottomDrawer
+                onOpenChange={setOpenSelectFintech}
+                open={openSelectFintect}
+                trigger={
+                  <Button
+                    id="money-form-fintech-input"
+                    variant="secondary"
+                    role="combobox"
+                    className={cn(
+                      "py-0 px-3 text-sm font-bold",
+                      !field.value && "text-muted-foreground",
+                    )}
+                  >
+                    {field.value
+                      ? FINTECHS.find(
+                          (fintech) => fintech.value === field.value,
+                        )?.label
+                      : "Select fintech"}
+                    <ChevronsUpDown className="opacity-50" />
+                  </Button>
+                }
+                title="Select Fintech"
+                desc="Optional. But if it is, it would be cool tho."
+                content={
+                  <Command className="rounded-4xl **:data-[slot='command-input-wrapper']:max-w-lg **:data-[slot='command-input-wrapper']:w-full **:data-[slot='command-input-wrapper']:mx-auto">
+                    <CommandInput placeholder="Search fintech..." />
+                    <CommandList className="p-4 max-h-full">
+                      <CommandEmpty>No fintech found.</CommandEmpty>
+                      <CommandGroup>
+                        <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 gap-2 max-w-lg mx-auto">
+                          {FINTECHS.map((fintech) => (
+                            <CommandItem
+                              value={fintech.label}
+                              key={fintech.value}
+                              onSelect={() => {
+                                form.setValue(
+                                  "fintech",
+                                  fintech.value === form.getValues("fintech")
+                                    ? ""
+                                    : fintech.value,
+                                );
+                                // setOpenSelectFintech(false);
+                              }}
+                              className="aspect-square border rounded-4xl p-0 overflow-hidden hover:scale-95"
+                              style={{ background: fintech.color }}
+                            >
+                              <div className="w-full h-full relative p-4 z-0 flex">
+                                {/*<p className="z-2 leading-none break-all line-clamp-2">
+                                  {fintech.label}
+                                </p>*/}
+                                <CheckCircle2
+                                  className={cn(
+                                    "ml-auto z-2 absolute bottom-4 left-1/2 -translate-x-1/2 text-green-500 size-6 drop-shadow-lg bg-background rounded-full",
+                                    fintech.value === field.value
+                                      ? "opacity-100"
+                                      : "opacity-0",
+                                  )}
+                                />
+                                <Image
+                                  src={fintech.bg}
+                                  className="m-auto -z-10 drop-shadow"
+                                  alt={fintech.label}
+                                />
+                              </div>
+                            </CommandItem>
+                          ))}
+                        </div>
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                }
+              />
+
+              {/*<Popover
                 onOpenChange={setOpenSelectFintech}
                 open={openSelectFintect}
                 modal
@@ -271,7 +347,7 @@ export default function MoneyForm({
                     </CommandList>
                   </Command>
                 </PopoverContent>
-              </Popover>
+              </Popover>*/}
             </Field>
           )}
         />
