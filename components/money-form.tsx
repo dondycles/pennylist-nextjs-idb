@@ -43,6 +43,7 @@ import { toast } from "sonner";
 import _ from "lodash";
 import BottomDrawer from "./bottom-drawer";
 import Image from "next/image";
+import CurrencySign from "./currency-sign";
 
 export default function MoneyForm({
   targetMoney,
@@ -66,14 +67,14 @@ export default function MoneyForm({
     defaultValues: targetMoney
       ? { ...targetMoney, date_edited: date }
       : {
-          id: nanoid(),
-          name: "",
-          amount: "" as unknown as number,
-          fintech: "",
-          tags: [],
-          date_added: date,
-          date_edited: date,
-        },
+        id: nanoid(),
+        name: "",
+        amount: "" as unknown as number,
+        fintech: "",
+        tags: [],
+        date_added: date,
+        date_edited: date,
+      },
   });
 
   const [openSelectFintect, setOpenSelectFintech] = useState(false);
@@ -158,10 +159,10 @@ export default function MoneyForm({
           control={form.control}
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor="money-form-name-input">Name</FieldLabel>
+              <FieldLabel htmlFor={field.name}>Name</FieldLabel>
               <Input
                 {...field}
-                id="money-form-name-input"
+                id={field.name}
                 aria-invalid={fieldState.invalid}
                 placeholder="BDO Savings"
                 autoComplete="off"
@@ -175,15 +176,18 @@ export default function MoneyForm({
           control={form.control}
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor="money-form-amount-input">Amount</FieldLabel>
-              <Input
-                {...field}
-                id="money-form-amount-input"
-                placeholder="00.00"
-                aria-invalid={fieldState.invalid}
-                autoComplete="off"
-                type="number"
-              />
+              <FieldLabel htmlFor={field.name}>Amount</FieldLabel>
+              <div className="flex items-center gap-2">
+                <CurrencySign className="text-muted-foreground" />
+                <Input
+                  {...field}
+                  id={field.name}
+                  placeholder="00.00"
+                  aria-invalid={fieldState.invalid}
+                  autoComplete="off"
+                  type="number"
+                />
+              </div>
               {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
             </Field>
           )}
@@ -194,9 +198,7 @@ export default function MoneyForm({
           render={({ field, fieldState }) => (
             <Field orientation="horizontal" data-invalid={fieldState.invalid}>
               <FieldContent>
-                <FieldLabel htmlFor="money-form-fintech-input">
-                  Fintech?
-                </FieldLabel>
+                <FieldLabel htmlFor={field.name}>Fintech?</FieldLabel>
                 <FieldDescription>
                   Optional. But if it is, it would be cool tho.
                 </FieldDescription>
@@ -209,6 +211,7 @@ export default function MoneyForm({
                 open={openSelectFintect}
                 trigger={
                   <Button
+                    id={field.name}
                     variant="secondary"
                     role="combobox"
                     aria-expanded={openSelectFintect}
@@ -219,8 +222,8 @@ export default function MoneyForm({
                   >
                     {field.value
                       ? FINTECHS.find(
-                          (fintech) => fintech.value === field.value,
-                        )?.label
+                        (fintech) => fintech.value === field.value,
+                      )?.label
                       : "Select fintech"}
                     <ChevronsUpDown className="opacity-50" />
                   </Button>
@@ -234,7 +237,7 @@ export default function MoneyForm({
                       <CommandEmpty>No fintech found.</CommandEmpty>
                       <CommandGroup>
                         <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 gap-2 max-w-lg mx-auto p-1">
-                          {FINTECHS.map((fintech) => (
+                          {FINTECHS.map((fintech, i) => (
                             <CommandItem
                               aria-checked={
                                 fintech.value === form.getValues("fintech")
@@ -243,7 +246,7 @@ export default function MoneyForm({
                                 fintech.value === form.getValues("fintech")
                               }
                               value={fintech.label}
-                              key={fintech.value}
+                              key={`${fintech.value}-${i}`}
                               onSelect={() => {
                                 form.setValue(
                                   "fintech",
@@ -282,156 +285,91 @@ export default function MoneyForm({
                   </Command>
                 }
               />
-
-              {/*<Popover
-                onOpenChange={setOpenSelectFintech}
-                open={openSelectFintect}
-                modal
-              >
-                <PopoverTrigger asChild>
-                  <Button
-                    id="money-form-fintech-input"
-                    variant="secondary"
-                    role="combobox"
-                    className={cn(
-                      "py-0 px-3 text-sm font-bold",
-                      !field.value && "text-muted-foreground",
-                    )}
-                  >
-                    {field.value
-                      ? FINTECHS.find(
-                          (fintech) => fintech.value === field.value,
-                        )?.label
-                      : "Select fintech"}
-                    <ChevronsUpDown className="opacity-50" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent
-                  autoFocus={false}
-                  className="w-50 p-0"
-                  align="end"
-                >
-                  <Command className="rounded-4xl">
-                    <CommandInput
-                      autoFocus={false}
-                      placeholder="Search fintech..."
-                    />
-                    <CommandList>
-                      <CommandEmpty>No fintech found.</CommandEmpty>
-                      <CommandGroup>
-                        {FINTECHS.map((fintech) => (
-                          <CommandItem
-                            value={fintech.label}
-                            key={fintech.value}
-                            onSelect={() => {
-                              form.setValue(
-                                "fintech",
-                                fintech.value === form.getValues("fintech")
-                                  ? ""
-                                  : fintech.value,
-                              );
-                              setOpenSelectFintech(false);
-                            }}
-                          >
-                            {fintech.label}
-                            <Check
-                              className={cn(
-                                "ml-auto",
-                                fintech.value === field.value
-                                  ? "opacity-100"
-                                  : "opacity-0",
-                              )}
-                            />
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
-                    </CommandList>
-                  </Command>
-                </PopoverContent>
-              </Popover>*/}
             </Field>
           )}
         />
-        <FieldSet className="gap-3">
-          <Field orientation="horizontal">
-            <FieldContent>
-              <FieldLegend
-                variant="label"
-                className="m-0 font-black text-muted-foreground"
-              >
-                Tags?
-              </FieldLegend>
-              <FieldDescription>
-                Optional. Add tags for any purpose you want.
-              </FieldDescription>
-              {form.formState.errors.tags?.root && (
-                <FieldError errors={[form.formState.errors.tags.root]} />
-              )}
-            </FieldContent>
-            <Field className="gap-2 w-fit" orientation="responsive">
-              <Button
-                type="button"
-                variant="secondary"
-                onClick={() => appendTag({ tag: "" })}
-                className="py-0 px-3 text-sm font-bold text-muted-foreground"
-              >
-                Add Tag
-              </Button>
-              {form.getValues("tags")?.length ? (
-                <Button
-                  type="button"
-                  variant="destructive"
-                  onClick={() => form.resetField("tags")}
-                  className="py-0 px-3 text-sm font-bold"
-                >
-                  Reset Tags
-                </Button>
-              ) : null}
-            </Field>
-          </Field>
-          <FieldGroup className="flex flex-row flex-wrap gap-2">
-            {tags.map((tag, index) => (
-              <Controller
-                key={tag.id}
-                name={`tags.${index}.tag`}
-                control={form.control}
-                render={({ field: controllerField, fieldState }) => (
-                  <Field
-                    data-invalid={fieldState.invalid}
-                    className="max-w-[calc(33.3333%-6px)]"
+        <Controller
+          name="tags"
+          control={form.control}
+          render={({ field, fieldState }) => (
+            <FieldSet className="gap-3">
+              <Field data-invalid={fieldState.invalid} orientation="horizontal">
+                <FieldContent>
+                  <FieldLabel htmlFor={field.name}>Tags?</FieldLabel>
+                  <FieldDescription>
+                    Optional. Add tags for any purpose you want.
+                  </FieldDescription>
+                  {form.formState.errors.tags?.root && (
+                    <FieldError errors={[form.formState.errors.tags.root]} />
+                  )}
+                </FieldContent>
+                <Field className="gap-2 w-fit" orientation="responsive">
+                  <Button
+                    id={field.name}
+                    type="button"
+                    variant="secondary"
+                    onClick={() => appendTag({ tag: "" })}
+                    className="py-0 px-3 text-sm font-bold text-muted-foreground"
                   >
-                    <FieldContent>
-                      <InputGroup>
-                        <InputGroupInput
-                          {...controllerField}
-                          id={`money-form-tag-input-${index}`}
-                          aria-invalid={fieldState.invalid}
-                          placeholder="savings"
-                        />
-                        {tags.length > 1 && (
-                          <InputGroupAddon align="inline-end">
-                            <InputGroupButton
-                              type="button"
-                              variant="ghost"
-                              size="icon-xs"
-                              onClick={() => removeTag(index)}
-                              aria-label={`Remove tag ${index + 1}`}
-                            >
-                              <XIcon />
-                            </InputGroupButton>
-                          </InputGroupAddon>
-                        )}
-                      </InputGroup>
-                      {fieldState.invalid && (
-                        <FieldError errors={[fieldState.error]} />
-                      )}
-                    </FieldContent>
-                  </Field>
-                )}
-              />
-            ))}
-          </FieldGroup>
-        </FieldSet>
+                    Add Tag
+                  </Button>
+                  {form.getValues("tags")?.length ? (
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      onClick={() => form.resetField("tags")}
+                      className="py-0 px-3 text-sm font-bold"
+                    >
+                      Reset Tags
+                    </Button>
+                  ) : null}
+                </Field>
+              </Field>
+              <FieldGroup className="flex flex-row flex-wrap gap-2">
+                {tags.map((tag, index) => (
+                  <Controller
+                    key={tag.id}
+                    name={`tags.${index}.tag`}
+                    control={form.control}
+                    render={({ field: controllerField, fieldState }) => (
+                      <Field
+                        data-invalid={fieldState.invalid}
+                        className="max-w-[calc(33.3333%-6px)]"
+                      >
+                        <FieldContent>
+                          <InputGroup>
+                            <InputGroupInput
+                              {...controllerField}
+                              id={`tag-${index}`}
+                              aria-invalid={fieldState.invalid}
+                              placeholder="savings"
+                            />
+                            {tags.length > 1 && (
+                              <InputGroupAddon align="inline-end">
+                                <InputGroupButton
+                                  type="button"
+                                  variant="ghost"
+                                  size="icon-xs"
+                                  onClick={() => removeTag(index)}
+                                  aria-label={`Remove tag ${index + 1}`}
+                                >
+                                  <XIcon />
+                                </InputGroupButton>
+                              </InputGroupAddon>
+                            )}
+                          </InputGroup>
+                          {fieldState.invalid && (
+                            <FieldError errors={[fieldState.error]} />
+                          )}
+                        </FieldContent>
+                      </Field>
+                    )}
+                  />
+                ))}
+              </FieldGroup>
+            </FieldSet>
+          )}
+        />
       </FieldGroup>
       <Field
         orientation="horizontal"
