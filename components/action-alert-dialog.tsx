@@ -22,22 +22,10 @@ import { useState } from "react";
 import { Textarea } from "./ui/textarea";
 import Loader from "./loader";
 import { Field, FieldLabel } from "./ui/field";
-import { Money, MoneyTransfer } from "@/types/Money";
-import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableFooter,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
-import CurrencySign from "./currency-sign";
-import Amount from "./amount";
+import { Money } from "@/types/Money";
+import HistoryTableInfo from "./history-table-info";
 
 export default function ActionAlertDialog() {
-
   const {
     openDialog,
     moneyInActionForEditOrRemove,
@@ -46,9 +34,8 @@ export default function ActionAlertDialog() {
     setTypeOfAction,
     setMoneyInActionNewDataForEditOrRemove,
     setMoneysInActionForTransfer,
-    moneysInActionForTransfer
+    moneysInActionForTransfer,
   } = useActionConfirmStore();
-
 
   const reset = () => {
     setMoneyInActionForEditOrRemove(undefined);
@@ -132,7 +119,10 @@ function EditOrRemove(money: Money) {
             <ArrowDown className="mx-auto text-muted-foreground size-5" />
             <div className="space-y-2">
               <p className="text-sm font-medium text-muted-foreground">After</p>
-              <MoneyCard withOptions={false} money={moneyInActionNewDataForEditOrRemove} />
+              <MoneyCard
+                withOptions={false}
+                money={moneyInActionNewDataForEditOrRemove}
+              />
             </div>
           </>
         )}
@@ -159,38 +149,52 @@ function EditOrRemove(money: Money) {
             onClick={() => {
               if (isRemove) {
                 remove(money);
-
                 addHistory({
-                  date_added: date,
                   id: nanoid(),
-                  money_id: money.id,
+                  date_added: date,
                   type: "delete",
-                  snapshot: {
-                    before: { money, total_money },
-                    after: {
-                      money: { ...money, amount: 0 },
-                      total_money: total_money - Number(money.amount)
+                  transfer_history: null,
+                  edit_or_remove_history: [
+                    {
+                      money_id: money.id,
+                      snapshot: {
+                        before: money,
+                        after: { ...money, amount: 0 },
+                      },
+                      reason,
                     },
+                  ],
+                  total_money: {
+                    before: total_money,
+                    after: total_money - Number(money.amount),
                   },
-                  reason,
                 });
                 reset();
               } else if (isEdit) {
                 if (!moneyInActionNewDataForEditOrRemove) return reset();
                 edit(moneyInActionNewDataForEditOrRemove);
                 addHistory({
-                  date_added: date,
                   id: nanoid(),
-                  money_id: money.id,
+                  date_added: date,
+                  transfer_history: null,
                   type: "edit",
-                  snapshot: {
-                    before: { money, total_money },
-                    after: {
-                      money: moneyInActionNewDataForEditOrRemove,
-                      total_money: total_money - Number(money.amount) + Number(moneyInActionNewDataForEditOrRemove.amount)
+                  edit_or_remove_history: [
+                    {
+                      money_id: money.id,
+                      snapshot: {
+                        before: money,
+                        after: moneyInActionNewDataForEditOrRemove,
+                      },
+                      reason,
                     },
+                  ],
+                  total_money: {
+                    before: total_money,
+                    after:
+                      total_money -
+                      Number(money.amount) +
+                      Number(moneyInActionNewDataForEditOrRemove.amount),
                   },
-                  reason,
                 });
                 reset();
                 router.push("/list");
@@ -236,92 +240,7 @@ function Transfer() {
 
   return (
     <>
-      <Table >
-        <TableHeader>
-          <TableRow className="[&>th]:text-muted-foreground">
-            <TableHead>Type</TableHead>
-            <TableHead>Account</TableHead>
-            {/* <TableHead className="text-right">Prev. Balance</TableHead> */}
-            <TableHead className="text-right">Transfer</TableHead>
-            <TableHead className="text-right">Fee</TableHead>
-            <TableHead className="text-right">Total</TableHead>
-            {/* <TableHead className="text-right">New Balance</TableHead> */}
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {/* Sender Row */}
-          <TableRow className="bg-orange-500/10 font-medium">
-            <TableCell className="text-orange-500" >Sender</TableCell>
-            <TableCell>{senderMoney.name}</TableCell>
-            {/* <TableCell className="text-right font-black text-base">
-              <CurrencySign />
-              <Amount amount={Number(senderMoney.amount)} />
-            </TableCell> */}
-            <TableCell className="text-right text-orange-500 font-black text-base">
-              <SmallCurrencySign amountForSign={-1} />
-              <Amount amount={Number(senderMoney.demands)} />
-            </TableCell>
-            <TableCell className="text-right text-muted-foreground font-black text-base">
-              <SmallCurrencySign amountForSign={0} />
-              <Amount amount={0} />
-            </TableCell>
-            <TableCell className="text-right text-muted-foreground font-black text-base">
-              <SmallCurrencySign amountForSign={0} />
-              <Amount amount={0} />
-            </TableCell>
-
-            {/* <TableCell className="text-right font-black text-base">
-              <CurrencySign />
-              <Amount amount={(Number(senderMoney.amount) - Number(senderMoney.demands))} />
-            </TableCell> */}
-          </TableRow>
-
-          {/* Receiver Rows */}
-          {receiverMoneys.map((receiver) => (
-            <TableRow key={receiver.id} className="bg-green-500/10">
-              <TableCell className="text-green-600">Receiver</TableCell>
-              <TableCell>{receiver.name}</TableCell>
-              {/* <TableCell className="text-right font-black text-base">
-                <CurrencySign />
-                <Amount amount={Number(receiver.amount)} />
-              </TableCell> */}
-              <TableCell className="text-right text-green-600 font-black text-base">
-                <SmallCurrencySign amountForSign={1} />
-                <Amount amount={Number(receiver.demand)} />
-              </TableCell>
-              <TableCell className="text-right font-black text-base">
-                <SmallCurrencySign amountForSign={0} />
-                <Amount amount={Number(receiver.fee)} />
-              </TableCell>
-              <TableCell className="text-right font-black text-base">
-                <SmallCurrencySign amountForSign={0} />
-                <Amount amount={Number(receiver.demand) + Number(receiver.fee)} />
-              </TableCell>
-              {/* <TableCell className="text-right font-black text-base">
-                <CurrencySign />
-                <Amount amount={(Number(receiver.amount) + Number(receiver.demand))} />
-              </TableCell> */}
-            </TableRow>
-          ))}
-        </TableBody>
-        <TableFooter className="[&>tr]:text-muted-foreground">
-          <TableRow>
-            <TableCell colSpan={2} >Total Transfer</TableCell>
-            <TableCell className="text-right font-black text-base text-foreground">
-              <SmallCurrencySign amountForSign={0} />
-              <Amount amount={receiverMoneys.reduce((sum, r) => sum + Number(r.demand), 0)} />
-            </TableCell>
-            <TableCell className="text-right font-black text-base text-foreground">
-              <SmallCurrencySign amountForSign={0} />
-              <Amount amount={receiverMoneys.reduce((sum, r) => sum + Number(r.fee), 0)} />
-            </TableCell>
-            <TableCell className="text-right font-black text-base  text-orange-500">
-              <SmallCurrencySign amountForSign={0} />
-              <Amount amount={receiverMoneys.reduce((sum, r) => sum + Number(r.demand) + Number(r.fee), 0)} />
-            </TableCell>
-          </TableRow>
-        </TableFooter>
-      </Table>
+      <HistoryTableInfo data={moneysInActionForTransfer} />
       <AlertDialogFooter className="mt-4">
         <AlertDialogCancel className="flex-1">Cancel</AlertDialogCancel>
         <Button asChild className="flex-1" variant="destructive">
@@ -329,42 +248,57 @@ function Transfer() {
             onClick={() => {
               const updatedSender = {
                 ...senderMoney,
-                amount: Number(senderMoney.amount) - Number(senderMoney.demands),
+                amount:
+                  Number(senderMoney.amount) - Number(senderMoney.demands),
                 date_edited: date,
               };
-
+              edit(updatedSender);
               receiverMoneys.forEach((receiver) => {
                 const updatedReceiver = {
                   ...receiver,
                   amount: Number(receiver.amount) + Number(receiver.demand),
                   date_edited: date,
                 };
-
                 edit(updatedReceiver);
-                addHistory({
-                  date_added: date,
-                  id: nanoid(),
-                  money_id: receiver.id,
-                  type: "transfer",
-                  snapshot: {
-                    before: { money: receiver, total_money },
-                    after: { money: updatedReceiver, total_money }
-                  },
-                  reason: receiver.reason,
-                });
               });
 
-              edit(updatedSender);
               addHistory({
-                date_added: date,
                 id: nanoid(),
-                money_id: senderMoney.id,
+                date_added: date,
                 type: "transfer",
-                snapshot: {
-                  before: { money: senderMoney, total_money },
-                  after: { money: updatedSender, total_money }
+                edit_or_remove_history: [
+                  {
+                    money_id: senderMoney.id,
+                    snapshot: {
+                      before: senderMoney,
+                      after: updatedSender,
+                    },
+                  },
+                  ...receiverMoneys.map((receiver) => {
+                    const updatedReceiver = {
+                      ...receiver,
+                      amount: Number(receiver.amount) + Number(receiver.demand),
+                      date_edited: date,
+                    };
+                    return {
+                      money_id: receiver.id,
+                      snapshot: {
+                        before: receiver,
+                        after: updatedReceiver,
+                      },
+                      reason: receiver.reason,
+                    };
+                  }),
+                ],
+                transfer_history: moneysInActionForTransfer,
+                total_money: {
+                  before: total_money,
+                  after:
+                    total_money -
+                    Number(
+                      receiverMoneys.reduce((sum, r) => sum + Number(r.fee), 0),
+                    ),
                 },
-                reason: senderMoney.reason,
               });
 
               reset();
@@ -376,11 +310,5 @@ function Transfer() {
         </Button>
       </AlertDialogFooter>
     </>
-  );
-}
-
-function SmallCurrencySign({ amountForSign }: { amountForSign: number }) {
-  return (
-    <CurrencySign className="text-[10px]" amountForSign={amountForSign} />
   );
 }

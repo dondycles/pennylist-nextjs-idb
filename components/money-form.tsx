@@ -7,7 +7,6 @@ import {
   FieldError,
   FieldGroup,
   FieldLabel,
-  FieldLegend,
   FieldSet,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -43,7 +42,6 @@ import { toast } from "sonner";
 import _ from "lodash";
 import BottomDrawer from "./bottom-drawer";
 import Image from "next/image";
-import CurrencySign from "./currency-sign";
 import InpuntWithCurrency from "./input-w-currency";
 
 export default function MoneyForm({
@@ -68,14 +66,14 @@ export default function MoneyForm({
     defaultValues: targetMoney
       ? { ...targetMoney, date_edited: date }
       : {
-        id: nanoid(),
-        name: "",
-        amount: "" as unknown as number,
-        fintech: "",
-        tags: [],
-        date_added: date,
-        date_edited: date,
-      },
+          id: nanoid(),
+          name: "",
+          amount: "" as unknown as number,
+          fintech: "",
+          tags: [],
+          date_added: date,
+          date_edited: date,
+        },
   });
 
   const [openSelectFintect, setOpenSelectFintech] = useState(false);
@@ -122,19 +120,25 @@ export default function MoneyForm({
     const total_money = _.sum(moneys.map((money) => Number(money.amount)));
     add(money);
     addHistory({
-      date_added: date,
       id: nanoid(),
-      money_id: money.id,
+      date_added: date,
       type: "add",
-      snapshot: {
-        before: { money: targetMoney, total_money },
-        after: {
-          money: form.getValues(),
-          total_money:
-            Number(total_money) -
-            Number(targetMoney ? targetMoney.amount : 0) +
-            Number(form.getValues("amount")),
+      transfer_history: null,
+      edit_or_remove_history: [
+        {
+          money_id: money.id,
+          snapshot: {
+            before: targetMoney,
+            after: form.getValues(),
+          },
         },
+      ],
+      total_money: {
+        before: total_money,
+        after:
+          Number(total_money) -
+          Number(targetMoney ? targetMoney.amount : 0) +
+          Number(form.getValues("amount")),
       },
     });
     router.push("/list");
@@ -178,7 +182,10 @@ export default function MoneyForm({
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
               <FieldLabel htmlFor={field.name}>Amount</FieldLabel>
-              <InpuntWithCurrency aria-invalid={fieldState.invalid} {...field} />
+              <InpuntWithCurrency
+                aria-invalid={fieldState.invalid}
+                {...field}
+              />
               {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
             </Field>
           )}
@@ -213,8 +220,8 @@ export default function MoneyForm({
                   >
                     {field.value
                       ? FINTECHS.find(
-                        (fintech) => fintech.value === field.value,
-                      )?.label
+                          (fintech) => fintech.value === field.value,
+                        )?.label
                       : "Select fintech"}
                     <ChevronsUpDown className="opacity-50" />
                   </Button>

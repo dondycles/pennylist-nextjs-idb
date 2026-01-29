@@ -7,7 +7,6 @@ import {
   FieldError,
   FieldGroup,
   FieldLabel,
-  FieldLegend,
   FieldSet,
 } from "@/components/ui/field";
 import { Command as CommandPrimitive } from "cmdk";
@@ -15,7 +14,7 @@ import { Command as CommandPrimitive } from "cmdk";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useFieldArray, useForm, useWatch } from "react-hook-form";
 import * as z from "zod";
-import { CheckCircle2, ChevronUp, Plus, X } from "lucide-react";
+import { CheckCircle2, Plus, X } from "lucide-react";
 import {
   Command,
   CommandEmpty,
@@ -26,29 +25,25 @@ import {
 } from "@/components/ui/command";
 import { cn } from "@/lib/utils";
 
-import {
-  MoneyTransfer,
-  moneyTransferFormSchema,
-} from "@/types/Money";
+import { MoneyTransfer, moneyTransferFormSchema } from "@/types/Money";
 import { useMoneysStore } from "@/store/Moneys";
 import { FINTECHS } from "@/lib/contants";
 import MoneyTransferCardWForm from "@/components/money-transfer-card-w-form";
 import BottomDrawer from "./bottom-drawer";
 import Image from "next/image";
-import CurrencySign from "./currency-sign";
-import Amount from "./amount";
 import { Separator } from "./ui/separator";
-import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
 import { useEffect } from "react";
 import _ from "lodash";
 import { toast } from "sonner";
 import { useActionConfirmStore } from "@/store/ActionConfirm";
 import InpuntWithCurrency from "./input-w-currency";
+import MonetaryValue from "./monetary-value";
 
 export default function TransferMoneyForm() {
   const { moneys } = useMoneysStore();
-  const { setOpenDialog, setMoneysInActionForTransfer, setTypeOfAction } = useActionConfirmStore();
+  const { setOpenDialog, setMoneysInActionForTransfer, setTypeOfAction } =
+    useActionConfirmStore();
 
   const form = useForm<z.infer<typeof moneyTransferFormSchema>>({
     resolver: zodResolver(moneyTransferFormSchema),
@@ -60,8 +55,6 @@ export default function TransferMoneyForm() {
     mode: "onChange",
   });
 
-
-
   const {
     fields: moneyReceivers,
     append: appendMoneyReceiver,
@@ -72,17 +65,22 @@ export default function TransferMoneyForm() {
   });
 
   function onSubmit(transferData: z.infer<typeof moneyTransferFormSchema>) {
-
-    const fees = transferData.receiverMoneys.reduce((acc, rm) => acc + Number(rm.fee), 0);
-    const demands = transferData.receiverMoneys.reduce((acc, rm) => acc + Number(rm.demand), 0);
+    const fees = transferData.receiverMoneys.reduce(
+      (acc, rm) => acc + Number(rm.fee),
+      0,
+    );
+    const demands = transferData.receiverMoneys.reduce(
+      (acc, rm) => acc + Number(rm.demand),
+      0,
+    );
     const totalAmount = demands + fees;
 
     if (totalAmount !== transferData.senderMoney.demands) {
       form.setError("senderMoney.demands", {
         message: "Demands do not match",
-      })
-      toast.error("Demands do not match")
-      return
+      });
+      toast.error("Demands do not match");
+      return;
     }
     setMoneysInActionForTransfer(transferData);
     setTypeOfAction("transferMoney");
@@ -117,7 +115,9 @@ export default function TransferMoneyForm() {
   // }, [receiverMoneys, senderAmount, form]);
 
   useEffect(() => {
-    const senderMoney = moneys.find((m) => m.id === form.getValues("senderMoney")?.id);
+    const senderMoney = moneys.find(
+      (m) => m.id === form.getValues("senderMoney")?.id,
+    );
     if (receiverDemands > (senderMoney?.amount ?? 0)) {
       form.setError("senderMoney.demands", {
         message: `Total demand (${receiverDemands}) exceeds sender balance (${senderMoney?.amount})`,
@@ -125,15 +125,15 @@ export default function TransferMoneyForm() {
     } else {
       form?.clearErrors("senderMoney.demands");
     }
-  }, [receiverDemands])
+  }, [form, moneys, receiverDemands]);
 
   useEffect(() => {
     const totalDemands = _.sumBy(receivers, (rm) => Number(rm.demand || 0));
     const totalFees = _.sumBy(receivers, (rm) => Number(rm.fee || 0));
     const totalAmount = totalDemands + totalFees;
 
-    form.setValue("senderMoney.demands", totalAmount)
-  }, [receivers])
+    form.setValue("senderMoney.demands", totalAmount);
+  }, [form, receivers]);
 
   return (
     <form
@@ -188,10 +188,7 @@ export default function TransferMoneyForm() {
                                     node: "sender",
                                     demands: 0,
                                   });
-                                  form.setValue(
-                                    "receiverMoneys",
-                                    [],
-                                  );
+                                  form.setValue("receiverMoneys", []);
                                 }}
                                 className="aspect-square border rounded-4xl p-0 overflow-hidden"
                                 style={{
@@ -223,7 +220,7 @@ export default function TransferMoneyForm() {
               {field.value?.id ? (
                 <MoneyTransferCardWForm money={field.value}>
                   <div className="grid">
-                    <p className="font-black text-muted-foreground truncate">
+                    <span className="font-black text-muted-foreground truncate">
                       <span>{field.value.name}</span>
                       {field.value.tags?.map((tag, i) => (
                         <span
@@ -233,30 +230,48 @@ export default function TransferMoneyForm() {
                           #{tag.tag.toLowerCase()}{" "}
                         </span>
                       ))}
-                    </p>
-                    <p className="font-black text-4xl truncate">
-                      <CurrencySign amountForSign={Number(form.getValues("senderMoney.amount") ?? 0) < Number(form.getValues("senderMoney.demands") ?? 0) ? -1 : 0} />
-                      <Amount
-                        amount={
-                          Number(form.getValues("senderMoney.amount") ?? 0) - Number(form.getValues("senderMoney.demands") ?? 0)
-                        }
-                      />
-                    </p>
+                    </span>
+                    <MonetaryValue
+                      amount={
+                        Number(form.getValues("senderMoney.amount") ?? 0) -
+                        Number(form.getValues("senderMoney.demands") ?? 0)
+                      }
+                      amountForSign={
+                        Number(form.getValues("senderMoney.amount") ?? 0) <
+                        Number(form.getValues("senderMoney.demands") ?? 0)
+                          ? -1
+                          : 0
+                      }
+                    />
+
                     <Separator className="my-2" />
                     <Controller
                       control={form.control}
                       name="senderMoney.demands"
-                      render={({ field: controlField, fieldState: controlFieldState }) => (
-                        <Field data-invalid={controlFieldState.invalid} className="cursor-not-allowed">
-                          <FieldLabel htmlFor={controlField.name}>Demands</FieldLabel>
-                          <InpuntWithCurrency aria-invalid={controlFieldState.invalid} amountForSign={-1} placeholder={controlField.value.toString()} />
+                      render={({
+                        field: controlField,
+                        fieldState: controlFieldState,
+                      }) => (
+                        <Field
+                          data-invalid={controlFieldState.invalid}
+                          className="cursor-not-allowed"
+                        >
+                          <FieldLabel htmlFor={controlField.name}>
+                            Demands
+                          </FieldLabel>
+                          <InpuntWithCurrency
+                            className="disabled:opacity-100 aria-invalid:placeholder-destructive "
+                            disabled
+                            aria-invalid={controlFieldState.invalid}
+                            amountForSign={-1}
+                            placeholder={controlField.value.toString()}
+                          />
                           {controlFieldState.invalid && (
                             <FieldError errors={[controlFieldState.error]} />
                           )}
                         </Field>
                       )}
                     />
-
                   </div>
                 </MoneyTransferCardWForm>
               ) : null}
@@ -275,9 +290,7 @@ export default function TransferMoneyForm() {
                     Please select moneys to transfer to.
                   </FieldDescription>
                   {fieldState.invalid && (
-                    <FieldError
-                      errors={[fieldState.error]}
-                    />
+                    <FieldError errors={[fieldState.error]} />
                   )}
                 </FieldContent>
                 <BottomDrawer
@@ -288,7 +301,9 @@ export default function TransferMoneyForm() {
                       variant="secondary"
                       role="combobox"
                       size="icon"
-                      className={cn(!field.value.length && "text-muted-foreground")}
+                      className={cn(
+                        !field.value.length && "text-muted-foreground",
+                      )}
                     >
                       <Plus />
                     </Button>
@@ -324,26 +339,26 @@ export default function TransferMoneyForm() {
                                         "receiverMoneys",
                                         field.value
                                           ? [
-                                            ...field.value,
-                                            {
-                                              ...m,
-                                              node: "receiver",
-                                              demand:
-                                                undefined as unknown as number,
-                                              reason: "",
-                                              fee: undefined as unknown as number,
-                                            },
-                                          ]
+                                              ...field.value,
+                                              {
+                                                ...m,
+                                                node: "receiver",
+                                                demand:
+                                                  undefined as unknown as number,
+                                                reason: "",
+                                                fee: undefined as unknown as number,
+                                              },
+                                            ]
                                           : [
-                                            {
-                                              ...m,
-                                              node: "receiver",
-                                              demand:
-                                                undefined as unknown as number,
-                                              reason: "",
-                                              fee: undefined as unknown as number,
-                                            },
-                                          ],
+                                              {
+                                                ...m,
+                                                node: "receiver",
+                                                demand:
+                                                  undefined as unknown as number,
+                                                reason: "",
+                                                fee: undefined as unknown as number,
+                                              },
+                                            ],
                                       );
                                     }
 
@@ -361,11 +376,9 @@ export default function TransferMoneyForm() {
                                     m={{
                                       ...m,
                                       node: "receiver",
-                                      demand:
-                                        undefined as unknown as number,
+                                      demand: undefined as unknown as number,
                                       reason: "",
                                       fee: undefined as unknown as number,
-
                                     }}
                                     checked={field.value?.some(
                                       (rm) => rm.id === m.id,
@@ -391,7 +404,7 @@ export default function TransferMoneyForm() {
                       <>
                         <div className="flex justify-between">
                           <div className="grid">
-                            <p className="font-black text-muted-foreground truncate">
+                            <span className="font-black text-muted-foreground truncate">
                               <span>{money.name}</span>
                               {money.tags?.map((tag, i) => (
                                 <span
@@ -401,33 +414,30 @@ export default function TransferMoneyForm() {
                                   #{tag.tag.toLowerCase()}{" "}
                                 </span>
                               ))}
-                            </p>
-                            <p className="font-black text-4xl truncate">
-                              <CurrencySign amountForSign={0} />
-                              <Amount
-                                amount={
-                                  Number(
-                                    form.watch(
-                                      `receiverMoneys.${index}.amount`,
-                                    ) ?? 0,
-                                  ) +
-                                  Number(
-                                    form.watch(
-                                      `receiverMoneys.${index}.demand`,
-                                    ) ?? 0,
-                                  )
-                                }
-                              />
-                            </p>
+                            </span>
+                            <MonetaryValue
+                              amount={
+                                Number(
+                                  form.watch(
+                                    `receiverMoneys.${index}.amount`,
+                                  ) ?? 0,
+                                ) +
+                                Number(
+                                  form.watch(
+                                    `receiverMoneys.${index}.demand`,
+                                  ) ?? 0,
+                                )
+                              }
+                              amountForSign={0}
+                            />
                           </div>
                           <Button
                             size={"icon"}
                             className="size-fit p-2 z-2 text-muted-foreground"
                             variant={"ghost"}
-                            onClick={(e) => {
-                              removeMoneyReceiver(index)
+                            onClick={() => {
+                              removeMoneyReceiver(index);
                             }}
-
                           >
                             <X />
                           </Button>
@@ -442,7 +452,11 @@ export default function TransferMoneyForm() {
                                 <FieldLabel htmlFor={field.name}>
                                   Amount to receive
                                 </FieldLabel>
-                                <InpuntWithCurrency aria-invalid={fieldState.invalid} amountForSign={1} {...field} />
+                                <InpuntWithCurrency
+                                  aria-invalid={fieldState.invalid}
+                                  amountForSign={1}
+                                  {...field}
+                                />
                                 {fieldState.invalid && (
                                   <FieldError errors={[fieldState.error]} />
                                 )}
@@ -457,7 +471,11 @@ export default function TransferMoneyForm() {
                                 <FieldLabel htmlFor={field.name}>
                                   Fee
                                 </FieldLabel>
-                                <InpuntWithCurrency aria-invalid={fieldState.invalid} amountForSign={0} {...field} />
+                                <InpuntWithCurrency
+                                  aria-invalid={fieldState.invalid}
+                                  amountForSign={0}
+                                  {...field}
+                                />
                                 {fieldState.invalid && (
                                   <FieldError errors={[fieldState.error]} />
                                 )}
@@ -517,16 +535,19 @@ export default function TransferMoneyForm() {
   );
 }
 
-function Cell({ m, checked }: { m: MoneyTransfer["receiverMoneys"][number]; checked: boolean }) {
+function Cell({
+  m,
+  checked,
+}: {
+  m: MoneyTransfer["receiverMoneys"][number];
+  checked: boolean;
+}) {
   return (
     <div className="w-full h-full p-4 z-0 relative overflow-hidden ">
       <p className="z-2 leading-none break-all line-clamp-2 text-muted-foreground text-base">
         {m.name}
       </p>
-      <p className="z-2 font-black text-base truncate">
-        <CurrencySign className="text-xs" />
-        <Amount amount={m.amount} />
-      </p>
+      <MonetaryValue amount={m.amount} />
       <CheckCircle2
         className={cn(
           "ml-auto z-2 absolute bottom-4 left-1/2 -translate-x-1/2 text-green-500 size-6 drop-shadow-lg bg-background rounded-full",
@@ -566,4 +587,3 @@ function ModifiedCommand({
     </Command>
   );
 }
-

@@ -1,23 +1,29 @@
 import z from "zod";
-import { moneyFormSchema } from "./Money";
+import { moneyFormSchema, moneyTransferFormSchema } from "./Money";
 
-export const snapshotMoneyAndTotal = z.object({
-  money: moneyFormSchema.optional(),
-  total_money: z
-    .number("Amount must only be in numeric.")
-    .nonnegative("Amount must not be negative"),
+const editOrRemoveHistory = z.object({
+  money_id: z.nanoid().min(1, "ID is required."),
+  snapshot: z.object({
+    before: moneyFormSchema.optional(),
+    after: moneyFormSchema.optional(),
+  }),
+  reason: z.string().optional(),
 });
 
 export const historyFormSchema = z.object({
   id: z.nanoid().min(1, "ID is required."),
-  money_id: z.nanoid().min(1, "ID is required."),
   date_added: z.string().min(1, "Date added is required."),
   type: z.enum(["add", "edit", "delete", "transfer"]),
-  snapshot: z.object({
-    before: snapshotMoneyAndTotal,
-    after: snapshotMoneyAndTotal,
-  }),
-  reason: z.string().optional(),
+  transfer_history: moneyTransferFormSchema.nullable(),
+  edit_or_remove_history: z.array(editOrRemoveHistory).nullable(),
+  total_money: z.object({
+    before: z
+      .number("Amount must only be in numeric.")
+      .nonnegative("Amount must not be negative"),
+    after: z
+      .number("Amount must only be in numeric.")
+      .nonnegative("Amount must not be negative"),
+  })
 });
 
 export type History = z.infer<typeof historyFormSchema>;

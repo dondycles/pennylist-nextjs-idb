@@ -9,8 +9,7 @@ import { Button } from "./ui/button";
 import { Ellipsis, Pencil, Trash } from "lucide-react";
 import Image from "next/image";
 import { FINTECHS } from "@/lib/contants";
-import CurrencySign from "./currency-sign";
-import Amount from "./amount";
+import MonetaryValue from "./monetary-value";
 
 export default function MoneyCard({
   money,
@@ -41,10 +40,7 @@ export default function MoneyCard({
             </span>
           ))}
         </p>
-        <p className="font-black text-4xl truncate">
-          <CurrencySign />
-          <Amount amount={money.amount} />
-        </p>
+        <MonetaryValue amount={money.amount} />
       </div>
       {withOptions ? (
         <DropdownMenu>

@@ -41,7 +41,6 @@ export const moneyTransferFormSchema = z
         demand: z.coerce
           .number<number>("Amount must only be in numeric.")
           .nonnegative("Amount must not be negative"),
-
         fee: z.coerce
           .number<number>("Amount must only be in numeric.")
           .nonnegative("Amount must not be negative").optional(),

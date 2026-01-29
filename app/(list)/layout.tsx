@@ -13,8 +13,7 @@ import Loader from "@/components/loader";
 import { usePathname } from "next/navigation";
 import { useHistoryStore } from "@/store/History";
 import { useListSettingsStore } from "@/store/ListSettings";
-import CurrencySign from "@/components/currency-sign";
-import Amount from "@/components/amount";
+import MonetaryValue from "@/components/monetary-value";
 
 export default function ListsLayout({
   children,
@@ -41,11 +40,8 @@ export default function ListsLayout({
     <Main>
       <div className="rounded-b-4xl flex flex-col gap-6 text-center bg-muted/75 dark:bg-muted/20 w-full p-6">
         <div className="grid">
-          <p className="font-black text-muted-foreground">Total Money</p>
-          <p className="font-black text-4xl truncate">
-            <CurrencySign />
-            <Amount amount={totalMoney} />
-          </p>
+          <span className="font-black text-muted-foreground">Total Money</span>
+          <MonetaryValue amount={totalMoney} />
         </div>
         <ButtonGroup className="mx-auto">
           {pathname === "/list" ? (
