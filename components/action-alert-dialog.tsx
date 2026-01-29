@@ -241,29 +241,39 @@ function Transfer() {
           <TableRow className="[&>th]:text-muted-foreground">
             <TableHead>Type</TableHead>
             <TableHead>Account</TableHead>
-            <TableHead className="text-right">Prev. Balance</TableHead>
+            {/* <TableHead className="text-right">Prev. Balance</TableHead> */}
             <TableHead className="text-right">Transfer</TableHead>
-            <TableHead className="text-right">New Balance</TableHead>
+            <TableHead className="text-right">Fee</TableHead>
+            <TableHead className="text-right">Total</TableHead>
+            {/* <TableHead className="text-right">New Balance</TableHead> */}
           </TableRow>
         </TableHeader>
         <TableBody>
           {/* Sender Row */}
-          <TableRow className="bg-destructive/10 font-medium">
-            <TableCell className="text-destructive" >Sender</TableCell>
+          <TableRow className="bg-orange-500/10 font-medium">
+            <TableCell className="text-orange-500" >Sender</TableCell>
             <TableCell>{senderMoney.name}</TableCell>
-            <TableCell className="text-right font-black text-base">
+            {/* <TableCell className="text-right font-black text-base">
               <CurrencySign />
               <Amount amount={Number(senderMoney.amount)} />
-            </TableCell>
-            <TableCell className="text-right text-destructive font-black text-base">
-              <CurrencySign amountForSign={-1} />
+            </TableCell> */}
+            <TableCell className="text-right text-orange-500 font-black text-base">
+              <SmallCurrencySign amountForSign={-1} />
               <Amount amount={Number(senderMoney.demands)} />
             </TableCell>
+            <TableCell className="text-right text-muted-foreground font-black text-base">
+              <SmallCurrencySign amountForSign={0} />
+              <Amount amount={0} />
+            </TableCell>
+            <TableCell className="text-right text-muted-foreground font-black text-base">
+              <SmallCurrencySign amountForSign={0} />
+              <Amount amount={0} />
+            </TableCell>
 
-            <TableCell className="text-right font-black text-base">
+            {/* <TableCell className="text-right font-black text-base">
               <CurrencySign />
               <Amount amount={(Number(senderMoney.amount) - Number(senderMoney.demands))} />
-            </TableCell>
+            </TableCell> */}
           </TableRow>
 
           {/* Receiver Rows */}
@@ -271,31 +281,44 @@ function Transfer() {
             <TableRow key={receiver.id} className="bg-green-500/10">
               <TableCell className="text-green-600">Receiver</TableCell>
               <TableCell>{receiver.name}</TableCell>
-              <TableCell className="text-right font-black text-base">
+              {/* <TableCell className="text-right font-black text-base">
                 <CurrencySign />
                 <Amount amount={Number(receiver.amount)} />
-              </TableCell>
+              </TableCell> */}
               <TableCell className="text-right text-green-600 font-black text-base">
-                <CurrencySign amountForSign={1} />
+                <SmallCurrencySign amountForSign={1} />
                 <Amount amount={Number(receiver.demand)} />
               </TableCell>
-
               <TableCell className="text-right font-black text-base">
+                <SmallCurrencySign amountForSign={0} />
+                <Amount amount={Number(receiver.fee)} />
+              </TableCell>
+              <TableCell className="text-right font-black text-base">
+                <SmallCurrencySign amountForSign={0} />
+                <Amount amount={Number(receiver.demand) + Number(receiver.fee)} />
+              </TableCell>
+              {/* <TableCell className="text-right font-black text-base">
                 <CurrencySign />
                 <Amount amount={(Number(receiver.amount) + Number(receiver.demand))} />
-              </TableCell>
+              </TableCell> */}
             </TableRow>
           ))}
         </TableBody>
         <TableFooter className="[&>tr]:text-muted-foreground">
           <TableRow>
             <TableCell colSpan={2} >Total Transfer</TableCell>
-            <TableCell />
             <TableCell className="text-right font-black text-base text-foreground">
-              <CurrencySign amountForSign={0} />
+              <SmallCurrencySign amountForSign={0} />
               <Amount amount={receiverMoneys.reduce((sum, r) => sum + Number(r.demand), 0)} />
             </TableCell>
-            <TableCell />
+            <TableCell className="text-right font-black text-base text-foreground">
+              <SmallCurrencySign amountForSign={0} />
+              <Amount amount={receiverMoneys.reduce((sum, r) => sum + Number(r.fee), 0)} />
+            </TableCell>
+            <TableCell className="text-right font-black text-base  text-orange-500">
+              <SmallCurrencySign amountForSign={0} />
+              <Amount amount={receiverMoneys.reduce((sum, r) => sum + Number(r.demand) + Number(r.fee), 0)} />
+            </TableCell>
           </TableRow>
         </TableFooter>
       </Table>
@@ -353,5 +376,11 @@ function Transfer() {
         </Button>
       </AlertDialogFooter>
     </>
+  );
+}
+
+function SmallCurrencySign({ amountForSign }: { amountForSign: number }) {
+  return (
+    <CurrencySign className="text-[10px]" amountForSign={amountForSign} />
   );
 }

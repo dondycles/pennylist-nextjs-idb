@@ -44,6 +44,7 @@ import { useEffect } from "react";
 import _ from "lodash";
 import { toast } from "sonner";
 import { useActionConfirmStore } from "@/store/ActionConfirm";
+import InpuntWithCurrency from "./input-w-currency";
 
 export default function TransferMoneyForm() {
   const { moneys } = useMoneysStore();
@@ -55,6 +56,8 @@ export default function TransferMoneyForm() {
       senderMoney: undefined,
       receiverMoneys: [],
     },
+    reValidateMode: "onChange",
+    mode: "onChange",
   });
 
 
@@ -69,13 +72,16 @@ export default function TransferMoneyForm() {
   });
 
   function onSubmit(transferData: z.infer<typeof moneyTransferFormSchema>) {
-    if (transferData.senderMoney.demands !== transferData.receiverMoneys.reduce((acc, rm) => acc + Number(rm.demand), 0)) {
+
+    const fees = transferData.receiverMoneys.reduce((acc, rm) => acc + Number(rm.fee), 0);
+    const demands = transferData.receiverMoneys.reduce((acc, rm) => acc + Number(rm.demand), 0);
+    const totalAmount = demands + fees;
+
+    if (totalAmount !== transferData.senderMoney.demands) {
       form.setError("senderMoney.demands", {
         message: "Demands do not match",
       })
-      toast("Demands do not match", {
-        duration: 5000,
-      })
+      toast.error("Demands do not match")
       return
     }
     setMoneysInActionForTransfer(transferData);
@@ -84,12 +90,12 @@ export default function TransferMoneyForm() {
     // toast(<pre>{JSON.stringify(transferData, null, 2)}</pre>)
   }
 
-  const receiverMoneys = useWatch({
+  const receivers = useWatch({
     control: form.control,
     name: "receiverMoneys",
   });
 
-  const senderAmount = useWatch({
+  const receiverDemands = useWatch({
     control: form.control,
     name: "senderMoney.demands",
   });
@@ -112,20 +118,22 @@ export default function TransferMoneyForm() {
 
   useEffect(() => {
     const senderMoney = moneys.find((m) => m.id === form.getValues("senderMoney")?.id);
-    if (senderAmount > (senderMoney?.amount ?? 0)) {
+    if (receiverDemands > (senderMoney?.amount ?? 0)) {
       form.setError("senderMoney.demands", {
-        message: `Total demand (${senderAmount}) exceeds sender balance (${senderMoney?.amount})`,
+        message: `Total demand (${receiverDemands}) exceeds sender balance (${senderMoney?.amount})`,
       });
     } else {
       form?.clearErrors("senderMoney.demands");
     }
-  }, [senderAmount])
+  }, [receiverDemands])
 
   useEffect(() => {
-    const totalDemands = _.sumBy(receiverMoneys, (rm) => Number(rm.demand || 0));
+    const totalDemands = _.sumBy(receivers, (rm) => Number(rm.demand || 0));
+    const totalFees = _.sumBy(receivers, (rm) => Number(rm.fee || 0));
+    const totalAmount = totalDemands + totalFees;
 
-    form.setValue("senderMoney.demands", totalDemands)
-  }, [receiverMoneys])
+    form.setValue("senderMoney.demands", totalAmount)
+  }, [receivers])
 
   return (
     <form
@@ -241,19 +249,7 @@ export default function TransferMoneyForm() {
                       render={({ field: controlField, fieldState: controlFieldState }) => (
                         <Field data-invalid={controlFieldState.invalid} className="cursor-not-allowed">
                           <FieldLabel htmlFor={controlField.name}>Demands</FieldLabel>
-                          <div className="flex items-center gap-2">
-                            <CurrencySign amountForSign={-1} className="text-muted-foreground shrink-0" />
-                            <Input
-                              {...controlField}
-                              id={controlField.name}
-                              type="number"
-                              placeholder="Amount to deduct"
-                              aria-invalid={controlFieldState.invalid}
-                              disabled
-                              className="disabled:opacity-100 disabled:cursor-wait"
-                            />
-                          </div>
-
+                          <InpuntWithCurrency aria-invalid={controlFieldState.invalid} amountForSign={-1} placeholder={controlField.value.toString()} />
                           {controlFieldState.invalid && (
                             <FieldError errors={[controlFieldState.error]} />
                           )}
@@ -388,9 +384,9 @@ export default function TransferMoneyForm() {
               {moneyReceivers?.map((money, index) => (
                 <Controller
                   key={money.id}
-                  name={`receiverMoneys.${index}.name`}
+                  name={`receiverMoneys.${index}`}
                   control={form.control}
-                  render={({ field: controllerField, fieldState }) => (
+                  render={() => (
                     <MoneyTransferCardWForm key={money.id} money={money}>
                       <>
                         <div className="flex justify-between">
@@ -446,16 +442,22 @@ export default function TransferMoneyForm() {
                                 <FieldLabel htmlFor={field.name}>
                                   Amount to receive
                                 </FieldLabel>
-                                <div className="flex items-center gap-2">
-                                  <CurrencySign amountForSign={1} className="text-muted-foreground shrink-0" />
-                                  <Input
-                                    {...field}
-                                    id={field.name}
-                                    aria-invalid={fieldState.invalid}
-                                    type="number"
-                                    placeholder="00.00"
-                                  />
-                                </div>
+                                <InpuntWithCurrency aria-invalid={fieldState.invalid} amountForSign={1} {...field} />
+                                {fieldState.invalid && (
+                                  <FieldError errors={[fieldState.error]} />
+                                )}
+                              </Field>
+                            )}
+                          />
+                          <Controller
+                            name={`receiverMoneys.${index}.fee`}
+                            control={form.control}
+                            render={({ field, fieldState }) => (
+                              <Field data-invalid={fieldState.invalid}>
+                                <FieldLabel htmlFor={field.name}>
+                                  Fee
+                                </FieldLabel>
+                                <InpuntWithCurrency aria-invalid={fieldState.invalid} amountForSign={0} {...field} />
                                 {fieldState.invalid && (
                                   <FieldError errors={[fieldState.error]} />
                                 )}
@@ -564,3 +566,4 @@ function ModifiedCommand({
     </Command>
   );
 }
+

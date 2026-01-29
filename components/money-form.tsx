@@ -44,6 +44,7 @@ import _ from "lodash";
 import BottomDrawer from "./bottom-drawer";
 import Image from "next/image";
 import CurrencySign from "./currency-sign";
+import InpuntWithCurrency from "./input-w-currency";
 
 export default function MoneyForm({
   targetMoney,
@@ -177,17 +178,7 @@ export default function MoneyForm({
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
               <FieldLabel htmlFor={field.name}>Amount</FieldLabel>
-              <div className="flex items-center gap-2">
-                <CurrencySign className="text-muted-foreground" />
-                <Input
-                  {...field}
-                  id={field.name}
-                  placeholder="00.00"
-                  aria-invalid={fieldState.invalid}
-                  autoComplete="off"
-                  type="number"
-                />
-              </div>
+              <InpuntWithCurrency aria-invalid={fieldState.invalid} {...field} />
               {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
             </Field>
           )}
