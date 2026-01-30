@@ -8,6 +8,7 @@ export type HistoryStore = {
   addHistory: (history: History) => void;
   _hasHydrated: boolean;
   setHasHydrated: (state: boolean) => void;
+  reset: () => void;
 };
 
 export const useHistoryStore = create<HistoryStore>()(
@@ -20,6 +21,7 @@ export const useHistoryStore = create<HistoryStore>()(
         }),
       _hasHydrated: false,
       setHasHydrated: (state) => set({ _hasHydrated: state }),
+      reset: () => set({ histories: [] }),
     }),
     {
       name: "histories",
@@ -27,6 +29,6 @@ export const useHistoryStore = create<HistoryStore>()(
       onRehydrateStorage: (state) => {
         return () => state.setHasHydrated(true);
       },
-    }
-  )
+    },
+  ),
 );

@@ -12,6 +12,7 @@ export type ListSettingsStore = {
   setCurrency: (currency: string) => void;
   hideNumbers: boolean;
   setHideNumbers: (hideNumbers: boolean) => void;
+  reset: () => void;
 };
 
 export const useListSettingsStore = create<ListSettingsStore>()(
@@ -31,6 +32,15 @@ export const useListSettingsStore = create<ListSettingsStore>()(
       setCurrency: (currency) => set({ currency }),
       hideNumbers: false,
       setHideNumbers: (hideNumbers) => set({ hideNumbers }),
+      reset: () =>
+        set({
+          order: {
+            by: "date",
+            flow: [{ value: "first-to-last", label: "First to last" }],
+          },
+          currency: "PHP",
+          hideNumbers: false,
+        }),
     }),
     {
       name: "list-order",
@@ -38,6 +48,6 @@ export const useListSettingsStore = create<ListSettingsStore>()(
       onRehydrateStorage: (state) => {
         return () => state.setHasHydrated(true);
       },
-    }
-  )
+    },
+  ),
 );

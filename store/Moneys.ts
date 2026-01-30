@@ -10,6 +10,7 @@ export type MoneysStore = {
   edit: (money: Money) => void;
   _hasHydrated: boolean;
   setHasHydrated: (state: boolean) => void;
+  reset: () => void;
 };
 
 export const useMoneysStore = create<MoneysStore>()(
@@ -33,7 +34,7 @@ export const useMoneysStore = create<MoneysStore>()(
       edit: (moneyToBeEdited) =>
         set(({ moneys }) => {
           const moneyToBeEditedOldData = moneys.find(
-            (money) => money.id === moneyToBeEdited.id
+            (money) => money.id === moneyToBeEdited.id,
           );
           if (!moneyToBeEditedOldData) return { moneys };
 
@@ -48,6 +49,7 @@ export const useMoneysStore = create<MoneysStore>()(
         }),
       _hasHydrated: false,
       setHasHydrated: (state) => set({ _hasHydrated: state }),
+      reset: () => set({ moneys: [] }),
     }),
     {
       name: "moneys",
@@ -55,6 +57,6 @@ export const useMoneysStore = create<MoneysStore>()(
       onRehydrateStorage: (state) => {
         return () => state.setHasHydrated(true);
       },
-    }
-  )
+    },
+  ),
 );

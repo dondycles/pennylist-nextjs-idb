@@ -24,6 +24,7 @@ import Loader from "./loader";
 import { Field, FieldLabel } from "./ui/field";
 import { Money } from "@/types/Money";
 import HistoryTableInfo from "./history-table-info";
+import { useListSettingsStore } from "@/store/ListSettings";
 
 export default function ActionAlertDialog() {
   const {
@@ -35,6 +36,7 @@ export default function ActionAlertDialog() {
     setMoneyInActionNewDataForEditOrRemove,
     setMoneysInActionForTransfer,
     moneysInActionForTransfer,
+    typeOfAction,
   } = useActionConfirmStore();
 
   const reset = () => {
@@ -61,10 +63,13 @@ export default function ActionAlertDialog() {
             This action cannot be undone.
           </AlertDialogDescription>
         </AlertDialogHeader>
-        {moneyInActionForEditOrRemove ? (
+        {moneyInActionForEditOrRemove &&
+        (typeOfAction === "editMoney" || typeOfAction === "removeMoney") ? (
           <EditOrRemove {...moneyInActionForEditOrRemove} />
-        ) : moneysInActionForTransfer ? (
+        ) : moneysInActionForTransfer && typeOfAction === "transferMoney" ? (
           <Transfer />
+        ) : typeOfAction === "reset" ? (
+          <Reset />
         ) : (
           <Loader />
         )}
@@ -306,6 +311,46 @@ function Transfer() {
             }}
           >
             Confirm Transfer
+          </AlertDialogAction>
+        </Button>
+      </AlertDialogFooter>
+    </>
+  );
+}
+
+function Reset() {
+  const { reset: resetListSettings } = useListSettingsStore();
+  const { reset: resetMoneys } = useMoneysStore();
+  const { reset: resetHistory } = useHistoryStore();
+  const { setOpenDialog, setTypeOfAction } = useActionConfirmStore();
+
+  const handleClearData = () => {
+    resetListSettings();
+    resetMoneys();
+    resetHistory();
+    setTypeOfAction(undefined);
+    setOpenDialog(false);
+  };
+
+  return (
+    <>
+      <div className="flex flex-col gap-4">
+        <div className="space-y-2">
+          <p className="text-sm font-medium text-muted-foreground">
+            Are you sure you want to reset all data?
+          </p>
+        </div>
+      </div>
+
+      <AlertDialogFooter className="mt-4">
+        <AlertDialogCancel className="flex-1">Cancel</AlertDialogCancel>
+        <Button asChild variant="destructive" className="flex-1">
+          <AlertDialogAction
+            onClick={() => {
+              handleClearData();
+            }}
+          >
+            Confirm Reset
           </AlertDialogAction>
         </Button>
       </AlertDialogFooter>

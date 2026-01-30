@@ -18,9 +18,12 @@ import {
   Check,
   CheckIcon,
   ChevronsUpDown,
+  Download,
   Eye,
   EyeClosed,
   EyeOff,
+  Trash2,
+  Upload,
   XIcon,
 } from "lucide-react";
 import { useListSettingsStore } from "@/store/ListSettings";
@@ -29,6 +32,14 @@ import Loader from "./loader";
 import { CurrencySelect } from "./currency-select";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import {
+  ButtonGroup,
+  ButtonGroupSeparator,
+  ButtonGroupText,
+} from "./ui/button-group";
+import { useMoneysStore } from "@/store/Moneys";
+import { useHistoryStore } from "@/store/History";
+import { useActionConfirmStore } from "@/store/ActionConfirm";
 export default function SettingsDialog({
   children,
 }: {
@@ -43,13 +54,14 @@ export default function SettingsDialog({
     hideNumbers,
     setHideNumbers,
   } = useListSettingsStore();
+  const { setOpenDialog, setTypeOfAction } = useActionConfirmStore();
 
   return (
     <Dialog>
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent showCloseButton={false}>
         <DialogHeader>
-          <DialogTitle>Setting</DialogTitle>
+          <DialogTitle>Settings</DialogTitle>
           <DialogDescription>Set things below.</DialogDescription>
         </DialogHeader>
         {/* <pre>{JSON.stringify(order, null, 2)}</pre> */}
@@ -59,13 +71,11 @@ export default function SettingsDialog({
           <>
             <MiniCard>
               <Label htmlFor="order">List order by</Label>
-              <div
-                className="flex gap-2 justify-end flex-wrap ml-auto mr-0"
-                id="order"
-              >
+              <div className="flex gap-2 justify-end flex-wrap ml-auto mr-0">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button
+                      id="order"
                       variant="secondary"
                       className="py-0 px-3 text-sm font-bold capitalize"
                     >
@@ -95,7 +105,7 @@ export default function SettingsDialog({
                     >
                       {
                         LIST_ORDER_OPTIONS.find(
-                          (o) => o.by === order.by
+                          (o) => o.by === order.by,
                         )?.flow.find((f) => f.value === order.flow[0].value)
                           ?.label
                       }
@@ -104,7 +114,7 @@ export default function SettingsDialog({
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                     {LIST_ORDER_OPTIONS.find(
-                      (o) => o.by === order.by
+                      (o) => o.by === order.by,
                     )?.flow.map((flow) => (
                       <DropdownMenuItem
                         onClick={() => {
@@ -149,6 +159,31 @@ export default function SettingsDialog({
                   <EyeOff className="size-4" aria-hidden="true" />
                 </span>
               </div>
+            </MiniCard>
+            <MiniCard>
+              <Label htmlFor="import-export">Import/Export </Label>
+              <ButtonGroup id="import-export">
+                <Button variant="secondary" size="icon">
+                  <Download />
+                </Button>
+                <ButtonGroupSeparator />
+                <Button variant="secondary" size="icon">
+                  <Upload />
+                </Button>
+              </ButtonGroup>
+            </MiniCard>
+            <MiniCard>
+              <Label htmlFor="clear-data">Clear data</Label>
+              <Button
+                onClick={() => {
+                  setTypeOfAction("reset");
+                  setOpenDialog(true);
+                }}
+                variant="destructive"
+                size="icon"
+              >
+                <Trash2 />
+              </Button>
             </MiniCard>
           </>
         )}

@@ -3,13 +3,20 @@ import type { Money, MoneyTransfer } from "@/types/Money";
 
 export type ActionConfirmStore = {
   typeOfAction:
-  | "removeMoney"
-  | "saveMoney"
-  | "editMoney"
-  | "transferMoney"
-  | undefined;
+    | "removeMoney"
+    | "saveMoney"
+    | "editMoney"
+    | "transferMoney"
+    | "reset"
+    | undefined;
   setTypeOfAction: (
-    type: "removeMoney" | "saveMoney" | "editMoney" | "transferMoney" | undefined,
+    type:
+      | "removeMoney"
+      | "saveMoney"
+      | "editMoney"
+      | "transferMoney"
+      | "reset"
+      | undefined,
   ) => void;
 
   openDialog: boolean;
@@ -22,9 +29,7 @@ export type ActionConfirmStore = {
   setMoneyInActionNewDataForEditOrRemove: (money: Money | undefined) => void;
 
   moneysInActionForTransfer: MoneyTransfer | undefined;
-  setMoneysInActionForTransfer: (
-    money: MoneyTransfer | undefined,
-  ) => void;
+  setMoneysInActionForTransfer: (money: MoneyTransfer | undefined) => void;
 };
 
 export const useActionConfirmStore = create<ActionConfirmStore>()((set) => ({
