@@ -66,14 +66,16 @@ export default function TransferMoneyForm() {
 
   function onSubmit(transferData: z.infer<typeof moneyTransferFormSchema>) {
     const fees = transferData.receiverMoneys.reduce(
-      (acc, rm) => acc + Number(rm.fee),
+      (acc, rm) => acc + Number(rm.fee ?? 0),
       0,
     );
     const demands = transferData.receiverMoneys.reduce(
-      (acc, rm) => acc + Number(rm.demand),
+      (acc, rm) => acc + Number(rm.demand ?? 0),
       0,
     );
     const totalAmount = demands + fees;
+
+    console.log(totalAmount, transferData.senderMoney.demands);
 
     if (totalAmount !== transferData.senderMoney.demands) {
       form.setError("senderMoney.demands", {
@@ -164,7 +166,9 @@ export default function TransferMoneyForm() {
                       variant="secondary"
                       role="combobox"
                       size="icon"
-                      className={cn(!field.value && "text-muted-foreground")}
+                      className={cn(
+                        !field.value?.id && "text-muted-foreground",
+                      )}
                     >
                       <Plus />
                     </Button>
@@ -186,7 +190,7 @@ export default function TransferMoneyForm() {
                                   form.setValue("senderMoney", {
                                     ...m,
                                     node: "sender",
-                                    demands: 0,
+                                    demands: undefined as unknown as number,
                                   });
                                   form.setValue("receiverMoneys", []);
                                 }}
@@ -264,7 +268,7 @@ export default function TransferMoneyForm() {
                             disabled
                             aria-invalid={controlFieldState.invalid}
                             amountForSign={-1}
-                            placeholder={controlField.value.toString()}
+                            placeholder={controlField.value?.toString()}
                           />
                           {controlFieldState.invalid && (
                             <FieldError errors={[controlFieldState.error]} />
@@ -516,6 +520,7 @@ export default function TransferMoneyForm() {
         className="gap-2 max-w-lg justify-end fixed bottom-0 left-1/2 -translate-x-1/2 border-t p-4 bg-background/50 backdrop-blur-2xl"
       >
         <Button
+          disabled={!form.formState.isValid}
           type="button"
           variant="secondary"
           onClick={() => {
@@ -527,7 +532,11 @@ export default function TransferMoneyForm() {
         >
           Reset
         </Button>
-        <Button type="submit" form="transfer-money-form">
+        <Button
+          disabled={!form.formState.isValid}
+          type="submit"
+          form="transfer-money-form"
+        >
           Transfer
         </Button>
       </Field>
@@ -547,7 +556,7 @@ function Cell({
       <p className="z-2 leading-none break-all line-clamp-2 text-muted-foreground text-base">
         {m.name}
       </p>
-      <MonetaryValue amount={m.amount} />
+      <MonetaryValue amount={m.amount ?? 0} />
       <CheckCircle2
         className={cn(
           "ml-auto z-2 absolute bottom-4 left-1/2 -translate-x-1/2 text-green-500 size-6 drop-shadow-lg bg-background rounded-full",
