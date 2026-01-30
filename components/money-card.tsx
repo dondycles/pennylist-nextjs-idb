@@ -40,7 +40,7 @@ export default function MoneyCard({
             </span>
           ))}
         </p>
-        <MonetaryValue amount={money.amount} />
+        <MonetaryValue amount={money.amount ?? 0} />
       </div>
       {withOptions ? (
         <DropdownMenu>

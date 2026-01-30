@@ -12,10 +12,10 @@ export default function ListPageComponent() {
 
   const sortFn = (a: Money, b: Money) => {
     if (order.by === "amount" && order.flow[0].value === "first-to-last") {
-      return a.amount - b.amount;
+      return (a.amount ?? 0) - (b.amount ?? 0);
     }
     if (order.by === "amount" && order.flow[0].value === "last-to-first") {
-      return b.amount - a.amount;
+      return (b.amount ?? 0) - (a.amount ?? 0);
     }
 
     if (order.by === "date" && order.flow[0].value === "first-to-last")

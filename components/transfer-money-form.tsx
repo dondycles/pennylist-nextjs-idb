@@ -55,14 +55,12 @@ export default function TransferMoneyForm() {
     mode: "onChange",
   });
 
-  const {
-    fields: moneyReceivers,
-    append: appendMoneyReceiver,
-    remove: removeMoneyReceiver,
-  } = useFieldArray({
-    control: form.control,
-    name: "receiverMoneys",
-  });
+  const { fields: moneyReceivers, remove: removeMoneyReceiver } = useFieldArray(
+    {
+      control: form.control,
+      name: "receiverMoneys",
+    },
+  );
 
   function onSubmit(transferData: z.infer<typeof moneyTransferFormSchema>) {
     const fees = transferData.receiverMoneys.reduce(

@@ -49,7 +49,7 @@ const CurrencySelect = React.forwardRef<HTMLButtonElement, CurrencySelectProps>(
       value,
       onValueChange,
       onCurrencySelect,
-      currencies = "withdrawal",
+      // currencies = "withdrawal",
       valid = true,
       ...props
     },
@@ -90,7 +90,7 @@ const CurrencySelect = React.forwardRef<HTMLButtonElement, CurrencySelectProps>(
       return Array.from(currencyMap.values()).sort((a, b) =>
         a.name.localeCompare(b.name),
       );
-    }, [currencies]);
+    }, []);
 
     const handleValueChange = (newValue: string) => {
       const fullCurrencyData = uniqueCurrencies.find(

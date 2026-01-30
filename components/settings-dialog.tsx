@@ -16,15 +16,12 @@ import {
 import { LIST_ORDER_OPTIONS } from "@/lib/contants";
 import {
   Check,
-  CheckIcon,
   ChevronsUpDown,
   Download,
   Eye,
-  EyeClosed,
   EyeOff,
   Trash2,
   Upload,
-  XIcon,
 } from "lucide-react";
 import { useListSettingsStore } from "@/store/ListSettings";
 import { ModeToggle } from "./theme-toggle";
@@ -32,13 +29,7 @@ import Loader from "./loader";
 import { CurrencySelect } from "./currency-select";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import {
-  ButtonGroup,
-  ButtonGroupSeparator,
-  ButtonGroupText,
-} from "./ui/button-group";
-import { useMoneysStore } from "@/store/Moneys";
-import { useHistoryStore } from "@/store/History";
+import { ButtonGroup, ButtonGroupSeparator } from "./ui/button-group";
 import { useActionConfirmStore } from "@/store/ActionConfirm";
 export default function SettingsDialog({
   children,
