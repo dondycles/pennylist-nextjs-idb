@@ -52,7 +52,7 @@ export default function SettingsDialog({
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent
         showCloseButton={false}
-        className="max-h-[50vh] overflow-y-auto"
+        className="max-h-[75vh] overflow-y-auto"
       >
         <DialogHeader>
           <DialogTitle>Settings</DialogTitle>
