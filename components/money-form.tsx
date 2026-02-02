@@ -337,7 +337,7 @@ export default function MoneyForm({
                     role="combobox"
                     aria-expanded={openSelectFintect}
                     className={cn(
-                      "py-0 px-3 text-sm font-bold",
+                      "py-0 px-3 text-sm font-bold border border-input",
                       !field.value && "text-muted-foreground",
                     )}
                   >
@@ -430,7 +430,7 @@ export default function MoneyForm({
                     type="button"
                     variant="secondary"
                     onClick={() => appendTag({ tag: "" })}
-                    className="py-0 px-3 text-sm font-bold text-muted-foreground"
+                    className="py-0 px-3 text-sm font-bold text-muted-foreground border border-input"
                   >
                     Add Tag
                   </Button>
