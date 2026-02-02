@@ -88,6 +88,7 @@ function EditOrRemove(money: Money) {
     setMoneyInActionNewDataForEditOrRemove,
     moneyInActionNewDataForEditOrRemove,
     setMoneysInActionForTransfer,
+    moneyInActionForEditOrRemove,
   } = useActionConfirmStore();
 
   const total_money = _.sum(moneys.map((money) => Number(money.amount)));
@@ -112,14 +113,19 @@ function EditOrRemove(money: Money) {
           money={money}
           className="bg-transparent border border-dashed"
         />
+        <pre>{JSON.stringify(money, null, 2)}</pre>
         {isEdit && moneyInActionNewDataForEditOrRemove && (
           <>
             <ChevronDown className="text-muted-foreground/75 dark:text-muted-foreground/25 mx-auto" />
             <MoneyCard
               withOptions={false}
+              oldMoney={money}
               money={moneyInActionNewDataForEditOrRemove}
               className="bg-transparent border border-dashed"
             />
+            <pre>
+              {JSON.stringify(moneyInActionNewDataForEditOrRemove, null, 2)}
+            </pre>
           </>
         )}
       </div>

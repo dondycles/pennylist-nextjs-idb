@@ -75,6 +75,7 @@ export default function MoneyForm({
           date_edited: date,
           amountChange: "" as unknown as number,
           operation: "add",
+          reason: "",
         }
       : {
           id: nanoid(),
@@ -86,7 +87,10 @@ export default function MoneyForm({
           date_edited: date,
           amountChange: "" as unknown as number,
           operation: "add",
+          reason: "",
         },
+    mode: "onChange",
+    reValidateMode: "onChange",
   });
 
   const [openSelectFintect, setOpenSelectFintech] = useState(false);
@@ -116,15 +120,9 @@ export default function MoneyForm({
   });
 
   function onSubmit(money: z.infer<typeof moneyFormSchema>) {
-    const sanitizeMoney: Omit<z.infer<typeof moneyFormSchema>, "amount"> & {
-      amount: string;
-    } = {
-      ...money,
-      amount: String(money.amount),
-    };
     if (
       _.isEqual(
-        _.omit(sanitizeMoney, "date_edited"),
+        _.omit(money, "date_edited"),
         _.omit(targetMoney, "date_edited"),
       )
     )
@@ -146,7 +144,12 @@ export default function MoneyForm({
   function addMoney(money: z.infer<typeof moneyFormSchema>) {
     if (action !== "add") return;
     const total_money = _.sum(moneys.map((money) => Number(money.amount)));
-    add(money);
+    add({
+      ...money,
+      amountChange: undefined,
+      reason: undefined,
+      operation: undefined,
+    });
     addHistory({
       id: nanoid(),
       date_added: date,
@@ -188,11 +191,11 @@ export default function MoneyForm({
   //   );
   // }, [addAmount, form, removeAmount, targetMoney?.amount]);
 
-  useEffect(() => {
-    const diff = Number(targetMoney?.amount ?? 0) - amount;
-    form.setValue("operation", diff > 0 ? "deduct" : "add");
-    form.setValue("amountChange", Math.abs(diff));
-  }, [amount, form]);
+  // useEffect(() => {
+  //   const diff = Number(targetMoney?.amount ?? 0) - amount;
+  //   form.setValue("operation", diff > 0 ? "deduct" : "add");
+  //   form.setValue("amountChange", Math.abs(diff));
+  // }, [amount, form]);
 
   return (
     <form
@@ -518,6 +521,7 @@ export default function MoneyForm({
           className="gap-2 max-w-lg w-full mx-auto justify-end p-4 "
         >
           <Button
+            disabled={!form.formState.isValid}
             type="button"
             variant="secondary"
             onClick={() => {
@@ -528,7 +532,12 @@ export default function MoneyForm({
           >
             Reset
           </Button>
-          <Button className="capitalize" type="submit" form="money-form">
+          <Button
+            disabled={!form.formState.isValid}
+            className="capitalize"
+            type="submit"
+            form="money-form"
+          >
             {action}
           </Button>
         </Field>

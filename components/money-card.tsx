@@ -11,6 +11,7 @@ import Image from "next/image";
 import { FINTECHS } from "@/lib/contants";
 import MonetaryValue from "./monetary-value";
 import { cn } from "@/lib/utils";
+import { Badge } from "./ui/badge";
 
 export default function MoneyCard({
   money,
@@ -36,7 +37,7 @@ export default function MoneyCard({
         className,
       )}
     >
-      <div className="grid z-2">
+      <div className="grid z-2 flex-1">
         <p className="font-black text-muted-foreground truncate">
           <span>{money.name} </span>
           {money.tags?.map((tag, i) => (
@@ -49,6 +50,17 @@ export default function MoneyCard({
           ))}
         </p>
         <MonetaryValue amount={money.amount ?? 0} />
+        {oldMoney ? (
+          <Badge
+            className={`ml-auto mr-0 ${money.operation === "add" ? "bg-green-500" : "bg-red-500"}`}
+          >
+            <MonetaryValue
+              amount={money.amountChange ?? 0}
+              variant={"allBase"}
+              amountForSign={money.operation === "add" ? 1 : -1}
+            />
+          </Badge>
+        ) : null}
       </div>
       {withOptions ? (
         <DropdownMenu>
