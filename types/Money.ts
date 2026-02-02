@@ -26,6 +26,7 @@ const moneyFormBaseSchema = z.object({
     .nonnegative("Amount must not be negative")
     .default(0)
     .optional(),
+  reason: z.string().optional(),
 });
 
 // Full schema with refinements and transformations

@@ -13,15 +13,12 @@ import { useActionConfirmStore } from "@/store/ActionConfirm";
 import { useMoneysStore } from "@/store/Moneys";
 import MoneyCard from "./money-card";
 import { Button } from "./ui/button";
-import { ArrowDown, ChevronDown } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { useRouter } from "next/navigation";
 import _ from "lodash";
 import { useHistoryStore } from "@/store/History";
 import { nanoid } from "nanoid";
-import { useState } from "react";
-import { Textarea } from "./ui/textarea";
 import Loader from "./loader";
-import { Field, FieldLabel } from "./ui/field";
 import { Money } from "@/types/Money";
 import HistoryTableInfo from "./history-table-info";
 import { useListSettingsStore } from "@/store/ListSettings";
@@ -82,7 +79,6 @@ function EditOrRemove(money: Money) {
   const router = useRouter();
   const { remove, edit, moneys } = useMoneysStore();
   const { addHistory } = useHistoryStore();
-  const [reason, setReason] = useState<string | undefined>();
 
   const {
     typeOfAction,
@@ -102,7 +98,6 @@ function EditOrRemove(money: Money) {
     setMoneyInActionNewDataForEditOrRemove(undefined);
     setMoneysInActionForTransfer(undefined);
     setTypeOfAction(undefined);
-    setReason(undefined);
     setOpenDialog(false);
   };
 
@@ -119,7 +114,7 @@ function EditOrRemove(money: Money) {
         />
         {isEdit && moneyInActionNewDataForEditOrRemove && (
           <>
-            <ChevronDown className="text-border mx-auto" />
+            <ChevronDown className="text-muted-foreground/75 dark:text-muted-foreground/25 mx-auto" />
             <MoneyCard
               withOptions={false}
               money={moneyInActionNewDataForEditOrRemove}
@@ -127,15 +122,6 @@ function EditOrRemove(money: Money) {
             />
           </>
         )}
-        <Field>
-          <FieldLabel htmlFor="action-reason">Reason</FieldLabel>
-          <Textarea
-            id="action-reason"
-            value={reason}
-            onChange={(v) => setReason(v.target.value)}
-            placeholder={`Reason for ${isEdit ? "edit" : "removal"} (Optional)`}
-          />
-        </Field>
       </div>
       <AlertDialogFooter className="mt-4">
         <AlertDialogCancel className="flex-1">Cancel</AlertDialogCancel>
@@ -156,7 +142,7 @@ function EditOrRemove(money: Money) {
                         before: money,
                         after: { ...money, amount: 0 },
                       },
-                      reason,
+                      reason: money.reason,
                     },
                   ],
                   total_money: {
@@ -180,7 +166,7 @@ function EditOrRemove(money: Money) {
                         before: money,
                         after: moneyInActionNewDataForEditOrRemove,
                       },
-                      reason,
+                      reason: moneyInActionNewDataForEditOrRemove.reason,
                     },
                   ],
                   total_money: {

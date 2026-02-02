@@ -58,7 +58,7 @@ export default function HistoryCard({ history }: { history: History }) {
           <div className="border border-dashed rounded-3xl overflow-hidden">
             <HistoryTableInfo data={history.transfer_history} />
           </div>
-          <ChevronDown className="text-border mx-auto my-4" />
+          <ChevronDown className="text-muted-foreground/75 dark:text-muted-foreground/25  mx-auto my-4" />
           <EditOrRemoveCard data={history.edit_or_remove_history} />
         </>
       )}

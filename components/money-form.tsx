@@ -48,6 +48,7 @@ import Image from "next/image";
 import InpuntWithCurrency from "./input-w-currency";
 import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
 import MonetaryValue from "./monetary-value";
+import { Textarea } from "./ui/textarea";
 
 export default function MoneyForm({
   targetMoney,
@@ -188,7 +189,9 @@ export default function MoneyForm({
   // }, [addAmount, form, removeAmount, targetMoney?.amount]);
 
   useEffect(() => {
-    form.setValue("amountChange", "" as unknown as number);
+    const diff = Number(targetMoney?.amount ?? 0) - amount;
+    form.setValue("operation", diff > 0 ? "deduct" : "add");
+    form.setValue("amountChange", Math.abs(diff));
   }, [amount, form]);
 
   return (
@@ -243,6 +246,7 @@ export default function MoneyForm({
                 <Field data-invalid={fieldState.invalid}>
                   <FieldLabel htmlFor={field.name}>Adjustment</FieldLabel>
                   <InpuntWithCurrency
+                    min={0}
                     aria-invalid={fieldState.invalid}
                     amountForSign={operation === "add" ? 1 : -1}
                     {...field}
@@ -264,13 +268,13 @@ export default function MoneyForm({
                     value={field.value}
                     onValueChange={field.onChange}
                     aria-invalid={fieldState.invalid}
-                    className="[&>*>[data-slot='radio-group-item']]:mr-2 [&>*>*>svg]:size-4 grid-cols-[1fr_1fr] gap-4"
+                    className="[&>*>*>svg]:size-4 grid-cols-[1fr_1fr] gap-4"
                   >
                     {["add", "deduct"].map((operation) => (
                       <Field
                         key={operation}
                         orientation="horizontal"
-                        className="bg-muted rounded-full px-3 py-1"
+                        className="bg-muted rounded-full px-3 py-1 border border-input"
                       >
                         <RadioGroupItem value={operation} id={operation} />
                         <FieldLabel
@@ -489,6 +493,22 @@ export default function MoneyForm({
                 ))}
               </FieldGroup>
             </FieldSet>
+          )}
+        />
+        <Controller
+          name="reason"
+          control={form.control}
+          render={({ field, fieldState }) => (
+            <Field data-invalid={fieldState.invalid}>
+              <FieldLabel htmlFor={field.name}>Reason</FieldLabel>
+              <Textarea
+                {...field}
+                id={field.name}
+                aria-invalid={fieldState.invalid}
+                placeholder="Reason"
+              />
+              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+            </Field>
           )}
         />
       </FieldGroup>

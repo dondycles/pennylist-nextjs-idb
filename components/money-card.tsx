@@ -17,11 +17,13 @@ export default function MoneyCard({
   doAction,
   withOptions = true,
   className,
+  oldMoney,
 }: {
   money: Money;
   doAction?: (type: "edit" | "remove" | "transfer") => void;
   withOptions?: boolean;
   className?: string;
+  oldMoney?: Money;
 }) {
   const fintechData = FINTECHS.find(
     (fintech) => fintech.value === money.fintech,
