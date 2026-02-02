@@ -9,6 +9,7 @@ import {
   TableRow,
 } from "./ui/table";
 import MonetaryValue from "./monetary-value";
+import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 
 export default function HistoryTableInfo({
   data,
@@ -22,8 +23,22 @@ export default function HistoryTableInfo({
         <TableRow className="[&>th]:text-muted-foreground">
           <TableHead>Type</TableHead>
           <TableHead>Account</TableHead>
-          <TableHead className="text-right">Transfer</TableHead>
-          <TableHead className="text-right">Fee</TableHead>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <TableHead className="text-right">Transfer</TableHead>
+            </TooltipTrigger>
+            <TooltipContent align="end">
+              <p>Amount transferred to receivers</p>
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <TableHead className="text-right">Fee</TableHead>
+            </TooltipTrigger>
+            <TooltipContent align="end">
+              <p>Transfer fee</p>
+            </TooltipContent>
+          </Tooltip>
           {/* <TableHead className="text-right">Total</TableHead> */}
         </TableRow>
       </TableHeader>
@@ -36,6 +51,7 @@ export default function HistoryTableInfo({
                   <CurrencySign />
                   <Amount amount={Number(senderMoney.amount)} />
                 </TableCell> */}
+
           <TableCell className="text-right text-orange-500">
             <MonetaryValue
               amountForSign={-1}
@@ -43,6 +59,7 @@ export default function HistoryTableInfo({
               variant="sm"
             />
           </TableCell>
+
           <TableCell className="text-right text-muted-foreground">
             <MonetaryValue amountForSign={0} amount={0} variant="sm" />
           </TableCell>
@@ -72,6 +89,7 @@ export default function HistoryTableInfo({
                 variant="sm"
               />
             </TableCell>
+
             <TableCell className="text-right">
               <MonetaryValue
                 amountForSign={0}
@@ -79,6 +97,7 @@ export default function HistoryTableInfo({
                 variant="sm"
               />
             </TableCell>
+
             {/* <TableCell className="text-right">
               <MonetaryValue
                 amountForSign={0}
