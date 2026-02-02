@@ -13,7 +13,7 @@ import { useActionConfirmStore } from "@/store/ActionConfirm";
 import { useMoneysStore } from "@/store/Moneys";
 import MoneyCard from "./money-card";
 import { Button } from "./ui/button";
-import { ArrowDown } from "lucide-react";
+import { ArrowDown, ChevronDown } from "lucide-react";
 import { useRouter } from "next/navigation";
 import _ from "lodash";
 import { useHistoryStore } from "@/store/History";
@@ -111,28 +111,23 @@ function EditOrRemove(money: Money) {
 
   return (
     <>
-      <div className="flex flex-col gap-4">
-        <div className="space-y-2">
-          <p className="text-sm font-medium text-muted-foreground">
-            {isEdit ? "Before" : "Original Account"}
-          </p>
-          <MoneyCard withOptions={false} money={money} />
-        </div>
-
+      <div className="flex flex-col gap-4 mt-2">
+        <MoneyCard
+          withOptions={false}
+          money={money}
+          className="bg-transparent border border-dashed"
+        />
         {isEdit && moneyInActionNewDataForEditOrRemove && (
           <>
-            <ArrowDown className="mx-auto text-muted-foreground size-5" />
-            <div className="space-y-2">
-              <p className="text-sm font-medium text-muted-foreground">After</p>
-              <MoneyCard
-                withOptions={false}
-                money={moneyInActionNewDataForEditOrRemove}
-              />
-            </div>
+            <ChevronDown className="text-border mx-auto" />
+            <MoneyCard
+              withOptions={false}
+              money={moneyInActionNewDataForEditOrRemove}
+              className="bg-transparent border border-dashed"
+            />
           </>
         )}
-
-        <Field className="mt-2">
+        <Field>
           <FieldLabel htmlFor="action-reason">Reason</FieldLabel>
           <Textarea
             id="action-reason"
@@ -142,7 +137,6 @@ function EditOrRemove(money: Money) {
           />
         </Field>
       </div>
-
       <AlertDialogFooter className="mt-4">
         <AlertDialogCancel className="flex-1">Cancel</AlertDialogCancel>
         <Button asChild variant="destructive" className="flex-1">

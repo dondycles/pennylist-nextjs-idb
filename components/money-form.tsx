@@ -7,15 +7,17 @@ import {
   FieldError,
   FieldGroup,
   FieldLabel,
+  FieldLegend,
   FieldSeparator,
   FieldSet,
+  FieldTitle,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useFieldArray, useForm, useWatch } from "react-hook-form";
 import * as z from "zod";
-import { CheckCircle2, ChevronsUpDown, XIcon } from "lucide-react";
+import { CheckCircle2, ChevronsUpDown, Minus, Plus, XIcon } from "lucide-react";
 import {
   Command,
   CommandEmpty,
@@ -44,6 +46,7 @@ import _ from "lodash";
 import BottomDrawer from "./bottom-drawer";
 import Image from "next/image";
 import InpuntWithCurrency from "./input-w-currency";
+import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
 import MonetaryValue from "./monetary-value";
 
 export default function MoneyForm({
@@ -69,8 +72,8 @@ export default function MoneyForm({
       ? {
           ...targetMoney,
           date_edited: date,
-          addAmount: "" as unknown as number,
-          removeAmount: "" as unknown as number,
+          amountChange: "" as unknown as number,
+          operation: "add",
         }
       : {
           id: nanoid(),
@@ -80,21 +83,21 @@ export default function MoneyForm({
           tags: [],
           date_added: date,
           date_edited: date,
-          addAmount: "" as unknown as number,
-          removeAmount: "" as unknown as number,
+          amountChange: "" as unknown as number,
+          operation: "add",
         },
   });
 
   const [openSelectFintect, setOpenSelectFintech] = useState(false);
 
-  const addAmount = useWatch({
+  const amountChange = useWatch({
     control: form.control,
-    name: "addAmount",
+    name: "amountChange",
   });
 
-  const removeAmount = useWatch({
+  const operation = useWatch({
     control: form.control,
-    name: "removeAmount",
+    name: "operation",
   });
 
   const amount = useWatch({
@@ -135,7 +138,7 @@ export default function MoneyForm({
         return toast.error("Invalid Money", {
           description: "The money does not exist.",
         });
-      editMoney();
+      editMoney(money);
     }
   }
 
@@ -152,7 +155,6 @@ export default function MoneyForm({
         {
           money_id: money.id,
           snapshot: {
-            before: targetMoney,
             after: form.getValues(),
           },
         },
@@ -168,10 +170,10 @@ export default function MoneyForm({
     router.push("/list");
   }
 
-  function editMoney() {
+  function editMoney(money: z.infer<typeof moneyFormSchema>) {
     if (action !== "edit") return;
     setMoneyInActionForEditOrRemove(targetMoney);
-    setMoneyInActionNewDataForEditOrRemove(form.getValues());
+    setMoneyInActionNewDataForEditOrRemove(money);
     setTypeOfAction("editMoney");
     setOpenDialog(true);
   }
@@ -186,8 +188,7 @@ export default function MoneyForm({
   // }, [addAmount, form, removeAmount, targetMoney?.amount]);
 
   useEffect(() => {
-    form.setValue("addAmount", "" as unknown as number);
-    form.setValue("removeAmount", "" as unknown as number);
+    form.setValue("amountChange", "" as unknown as number);
   }, [amount, form]);
 
   return (
@@ -232,18 +233,18 @@ export default function MoneyForm({
         />
         <FieldGroup
           hidden={!targetMoney}
-          className="border border-dashed rounded-3xl p-4 text-muted-foreground"
+          className="border border-dashed rounded-3xl p-6"
         >
-          <div className="grid  xs:grid-cols-2 gap-4">
+          <div className="flex flex-col gap-4">
             <Controller
-              name="addAmount"
+              name="amountChange"
               control={form.control}
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor={field.name}>Add Amount</FieldLabel>
+                  <FieldLabel htmlFor={field.name}>Adjustment</FieldLabel>
                   <InpuntWithCurrency
                     aria-invalid={fieldState.invalid}
-                    amountForSign={+1}
+                    amountForSign={operation === "add" ? 1 : -1}
                     {...field}
                   />
                   {fieldState.invalid && (
@@ -253,42 +254,63 @@ export default function MoneyForm({
               )}
             />
             <Controller
-              name="removeAmount"
+              name="operation"
               control={form.control}
               render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor={field.name}>Remove Amount</FieldLabel>
-                  <InpuntWithCurrency
+                <FieldSet data-invalid={fieldState.invalid}>
+                  <FieldLegend variant="label">Operation</FieldLegend>
+                  <RadioGroup
+                    name={field.name}
+                    value={field.value}
+                    onValueChange={field.onChange}
                     aria-invalid={fieldState.invalid}
-                    amountForSign={-1}
-                    {...field}
-                  />
+                    className="[&>*>[data-slot='radio-group-item']]:mr-2 [&>*>*>svg]:size-4 grid-cols-[1fr_1fr] gap-4"
+                  >
+                    {["add", "deduct"].map((operation) => (
+                      <Field
+                        key={operation}
+                        orientation="horizontal"
+                        className="bg-muted rounded-full px-3 py-1"
+                      >
+                        <RadioGroupItem value={operation} id={operation} />
+                        <FieldLabel
+                          htmlFor={operation}
+                          className="capitalize text-base font-bold"
+                        >
+                          {operation === "add" ? <Plus /> : <Minus />}{" "}
+                          {operation}
+                        </FieldLabel>
+                      </Field>
+                    ))}
+                  </RadioGroup>
                   {fieldState.invalid && (
                     <FieldError errors={[fieldState.error]} />
                   )}
-                </Field>
+                </FieldSet>
               )}
             />
           </div>
-          <FieldSeparator />
-          <Field className="grid xs:grid-cols-2 gap-4">
-            <FieldLabel htmlFor="amount">Final Amount</FieldLabel>
-            <InpuntWithCurrency
-              amountForSign={
-                Number(amount ?? 0) +
-                  Number(addAmount ?? 0) -
-                  Number(removeAmount ?? 0) >=
-                0
-                  ? 0
-                  : -1
-              }
-              value={
-                Number(amount ?? 0) +
-                Number(addAmount ?? 0) -
-                Number(removeAmount ?? 0)
-              }
-              readOnly
-            />
+          <FieldSeparator className="opacity-50" />
+          <Field className="flex flex-row gap-4 [&>*]:w-fit">
+            <FieldLabel htmlFor="finalAmount" className="mt-auto flex-1">
+              Final Amount:
+            </FieldLabel>
+            <div id="finalAmount" className="w-fit">
+              <MonetaryValue
+                amountForSign={
+                  operation === "add"
+                    ? 0
+                    : Number(amount ?? 0) - Number(amountChange ?? 0) >= 0
+                      ? 0
+                      : -1
+                }
+                amount={
+                  operation === "add"
+                    ? Number(amount ?? 0) + Number(amountChange ?? 0)
+                    : Number(amount ?? 0) - Number(amountChange ?? 0)
+                }
+              />
+            </div>
           </Field>
         </FieldGroup>
         <Controller
@@ -323,7 +345,7 @@ export default function MoneyForm({
                       ? FINTECHS.find(
                           (fintech) => fintech.value === field.value,
                         )?.label
-                      : "Select fintech"}
+                      : "Select Fintech"}
                     <ChevronsUpDown className="opacity-50" />
                   </Button>
                 }

@@ -1,75 +1,110 @@
 import z from "zod";
 
-export const moneyFormSchema = z
-  .object({
-    id: z.nanoid().min(1, "ID is required."),
-    name: z
-      .string()
-      .min(1, "Name it at least 1 character.")
-      .max(32, "Name must be at most 32 characters."),
-    amount: z.coerce
-      .number<number>("Amount must only be in numeric.")
-      .nonnegative("Amount must not be negative")
-      .default(0)
-      .optional(),
-    addAmount: z.coerce
-      .number<number>("Amount must only be in numeric.")
-      .nonnegative("Amount must not be negative")
-      .default(0)
-      .optional(),
-    removeAmount: z.coerce
-      .number<number>("Amount must only be in numeric.")
-      .nonnegative("Amount must not be negative")
-      .default(0)
-      .optional(),
-    fintech: z.string().optional(),
-    tags: z
-      .array(
-        z.object({
-          tag: z.string().min(1, "Tag it with at least 1 character."),
-        }),
-      )
-      .optional(),
-    date_added: z.string().min(1, "Date added is required"),
-    date_edited: z.string(),
-  })
+// Base schema without transformations - can be extended
+const moneyFormBaseSchema = z.object({
+  id: z.nanoid().min(1, "ID is required."),
+  name: z
+    .string()
+    .min(1, "Name it at least 1 character.")
+    .max(32, "Name must be at most 32 characters."),
+  amount: z.coerce
+    .number<number>("Amount must only be in numeric.")
+    .nonnegative("Amount must not be negative"),
+  fintech: z.string().optional(),
+  tags: z
+    .array(
+      z.object({
+        tag: z.string().min(1, "Tag it with at least 1 character."),
+      }),
+    )
+    .optional(),
+  date_added: z.string().min(1, "Date added is required"),
+  date_edited: z.string(),
+  operation: z.enum(["add", "deduct"]).default("add").optional(),
+  amountChange: z.coerce
+    .number<number>("Amount must only be in numeric.")
+    .nonnegative("Amount must not be negative")
+    .default(0)
+    .optional(),
+});
+
+// Full schema with refinements and transformations
+export const moneyFormSchema = moneyFormBaseSchema
   .superRefine((data, ctx) => {
-    if ((data.removeAmount ?? 0) > (data.amount ?? 0) + (data.addAmount ?? 0)) {
+    if (data.operation === "deduct" && (data.amountChange ?? 0) > data.amount) {
       ctx.addIssue({
         code: "custom",
-        message: "Remove amount cannot be greater than current amount.",
-        path: ["removeAmount"],
+        message: "Amount change must not be zero.",
+        path: ["amountChange"],
       });
     }
+  })
+  .transform((data) => {
+    // Calculate final amount: amount + addAmount - removeAmount
+    const finalAmount =
+      data.operation === "add"
+        ? Number(data.amount ?? 0) + Number(data.amountChange ?? 0)
+        : Number(data.amount ?? 0) - Number(data.amountChange ?? 0);
+
+    return {
+      ...data,
+      amount: finalAmount,
+    };
   });
 
 export type Money = z.infer<typeof moneyFormSchema>;
 
 export const moneyTransferFormSchema = z
   .object({
-    senderMoney: moneyFormSchema.extend({
-      node: z.enum(["sender", "receiver"]).optional(),
-      reason: z.string().optional(),
-      demands: z.coerce
-        .number<number>("Amount must only be in numeric.")
-        .nonnegative("Amount must not be negative"),
-    }),
+    senderMoney: moneyFormBaseSchema
+      .extend({
+        node: z.enum(["sender", "receiver"]).optional(),
+        reason: z.string().optional(),
+        demands: z.coerce
+          .number<number>("Amount must only be in numeric.")
+          .nonnegative("Amount must not be negative"),
+      })
+      .transform((data) => {
+        // Calculate final amount: amount + addAmount - removeAmount
+        const finalAmount =
+          data.operation === "add"
+            ? Number(data.amount ?? 0) + Number(data.amountChange ?? 0)
+            : Number(data.amount ?? 0) - Number(data.amountChange ?? 0);
+
+        return {
+          ...data,
+          amount: finalAmount,
+        };
+      }),
     receiverMoneys: z
       .array(
-        moneyFormSchema.extend({
-          node: z.enum(["sender", "receiver"]).optional(),
-          reason: z.string().optional(),
-          demand: z.coerce
-            .number<number>("Amount must only be in numeric.")
-            .nonnegative("Amount must not be negative")
-            .default(0)
-            .optional(),
-          fee: z.coerce
-            .number<number>("Amount must only be in numeric.")
-            .nonnegative("Amount must not be negative")
-            .default(0)
-            .optional(),
-        }),
+        moneyFormBaseSchema
+          .extend({
+            node: z.enum(["sender", "receiver"]).optional(),
+            reason: z.string().optional(),
+            demand: z.coerce
+              .number<number>("Amount must only be in numeric.")
+              .nonnegative("Amount must not be negative")
+              .default(0)
+              .optional(),
+            fee: z.coerce
+              .number<number>("Amount must only be in numeric.")
+              .nonnegative("Amount must not be negative")
+              .default(0)
+              .optional(),
+          })
+          .transform((data) => {
+            // Calculate final amount: amount + addAmount - removeAmount
+            const finalAmount =
+              data.operation === "add"
+                ? Number(data.amount ?? 0) + Number(data.amountChange ?? 0)
+                : Number(data.amount ?? 0) - Number(data.amountChange ?? 0);
+
+            return {
+              ...data,
+              amount: finalAmount,
+            };
+          }),
       )
       .min(1, "At least 1 receiver needed."),
   })

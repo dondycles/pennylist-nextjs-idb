@@ -23,10 +23,10 @@ export default function HistoryCard({ history }: { history: History }) {
 
   return (
     <div className="rounded-4xl flex flex-col bg-muted/75 dark:bg-muted/25 w-full p-6 justify-between relative overflow-hidden">
-      <div className="z-2 flex gap-6 justify-between items-start flex-1  font-normal text-muted-foreground border-b pb-4">
+      <div className="z-2 flex gap-6 justify-between items-start flex-1 text-muted-foreground mb-6 text-sm font-bold">
         <HybridTooltip>
           <HybridTooltipTrigger>
-            <span className="capitalize truncate [&>svg]:mr-1.5 [&>svg]:size-4 [&>svg]:inline-flex">
+            <span className="capitalize truncate [&>svg]:mr-1.5 [&>svg]:mb-1 [&>svg]:size-3.5  [&>svg]:inline-flex">
               {history.type === "add" ? <Plus /> : null}
               {history.type === "delete" ? <Trash /> : null}
               {history.type === "transfer" ? <Plane /> : null}
@@ -55,22 +55,18 @@ export default function HistoryCard({ history }: { history: History }) {
         <EditOrRemoveCard data={history.edit_or_remove_history} />
       ) : (
         <>
-          <div className="bg-muted/25 rounded-3xl mt-4 overflow-hidden">
+          <div className="border border-dashed rounded-3xl overflow-hidden">
             <HistoryTableInfo data={history.transfer_history} />
           </div>
-          <ChevronDown className="text-muted-foreground mx-auto my-2" />
-          <div className="bg-muted/25 px-4 rounded-3xl mb-4 [&>div>div]:-mx-4 [&>div>div]:px-4">
-            <EditOrRemoveCard data={history.edit_or_remove_history} />
-          </div>
+          <ChevronDown className="text-border mx-auto my-4" />
+          <EditOrRemoveCard data={history.edit_or_remove_history} />
         </>
       )}
-      <div className="z-2 flex gap-6 justify-end items-start flex-1 font-normal text-muted-foreground border-t pt-4">
+      <div className="z-2 flex gap-6 justify-between items-end flex-1 text-muted-foreground mt-6">
+        <span className="font-bold text-sm">Total Money </span>
         <HybridTooltip>
           <HybridTooltipTrigger>
-            <MonetaryValue
-              amount={history.total_money.after ?? 0}
-              variant="sm"
-            />
+            <MonetaryValue amount={history.total_money.after ?? 0} />
           </HybridTooltipTrigger>
           <HybridTooltipContent align="end">
             <p>Total Money After Transaction</p>
@@ -105,13 +101,13 @@ function EditOrRemoveCard({
   }));
   if (!modifiedData) return null;
   return (
-    <div className="flex divide-y flex-col">
+    <div className="flex flex-col gap-6">
       {modifiedData.map((data) => (
         <div
           key={data.money_id}
-          className="z-2 flex gap-6 justify-between items-center flex-1 text-muted-foreground py-4 font-black"
+          className="z-2 flex flex-col gap-6 justify-between items-center flex-1 text-muted-foreground p-6 font-black border border-dashed rounded-3xl"
         >
-          <div className="grid truncate">
+          <div className="flex gap-6 justify-between w-full items-center">
             <HybridTooltip>
               <HybridTooltipTrigger asChild>
                 <Link
@@ -126,29 +122,35 @@ function EditOrRemoveCard({
               </HybridTooltipContent>
             </HybridTooltip>
             <HybridTooltip>
+              <HybridTooltipTrigger>
+                <MonetaryValue
+                  amount={data.valueChanged}
+                  amountForSign={data.valueChanged > 0 ? 1 : -1}
+                  className={`${data.valueChanged > 0 && "text-green-500"} ${
+                    data.valueChanged < 0 && "text-red-500"
+                  } `}
+                />
+              </HybridTooltipTrigger>
+              <HybridTooltipContent align="end">
+                <p>Value Changed</p>
+              </HybridTooltipContent>
+            </HybridTooltip>
+          </div>
+          {data.reason && (
+            <HybridTooltip>
               <HybridTooltipTrigger asChild>
-                <span className="font-normal">{data.reason}</span>
+                <blockquote className="border-l-2 pl-2 italic pr-1">
+                  &quot;{data.reason} Lorem ipsum dolor sit amet consectetur
+                  adipisicing elit. Fugiat, animi voluptatum beatae minima aut
+                  similique ipsum veniam pariatur magnam! Facilis soluta nam
+                  fugiat veritatis cumque. &quot;
+                </blockquote>
               </HybridTooltipTrigger>
               <HybridTooltipContent align="end">
                 <p>Reason</p>
               </HybridTooltipContent>
             </HybridTooltip>
-          </div>
-          <HybridTooltip>
-            <HybridTooltipTrigger>
-              <MonetaryValue
-                amount={data.valueChanged}
-                amountForSign={data.valueChanged > 0 ? 1 : -1}
-                variant="sm"
-                className={`${data.valueChanged > 0 && "text-green-500"} ${
-                  data.valueChanged < 0 && "text-red-500"
-                } `}
-              />
-            </HybridTooltipTrigger>
-            <HybridTooltipContent align="end">
-              <p>Value Changed</p>
-            </HybridTooltipContent>
-          </HybridTooltip>
+          )}
         </div>
       ))}
     </div>

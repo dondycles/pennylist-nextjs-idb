@@ -10,15 +10,18 @@ import { Ellipsis, Pencil, Trash } from "lucide-react";
 import Image from "next/image";
 import { FINTECHS } from "@/lib/contants";
 import MonetaryValue from "./monetary-value";
+import { cn } from "@/lib/utils";
 
 export default function MoneyCard({
   money,
   doAction,
   withOptions = true,
+  className,
 }: {
   money: Money;
   doAction?: (type: "edit" | "remove" | "transfer") => void;
   withOptions?: boolean;
+  className?: string;
 }) {
   const fintechData = FINTECHS.find(
     (fintech) => fintech.value === money.fintech,
@@ -26,7 +29,10 @@ export default function MoneyCard({
   return (
     <div
       key={money.id}
-      className="rounded-4xl flex bg-muted/75 dark:bg-muted/25 w-full p-6 justify-between relative overflow-hidden"
+      className={cn(
+        "rounded-4xl flex bg-muted/75 dark:bg-muted/25 w-full p-6 justify-between relative overflow-hidden",
+        className,
+      )}
     >
       <div className="grid z-2">
         <p className="font-black text-muted-foreground truncate">

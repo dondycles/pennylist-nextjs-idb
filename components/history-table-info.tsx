@@ -65,12 +65,12 @@ export default function HistoryTableInfo({
             <MonetaryValue
               amountForSign={-1}
               amount={Number(data.senderMoney.demands)}
-              variant="sm"
+              variant="allBase"
             />
           </TableCell>
 
           <TableCell className="text-right text-muted-foreground">
-            <MonetaryValue amountForSign={0} amount={0} variant="sm" />
+            <MonetaryValue amountForSign={0} amount={0} variant="allBase" />
           </TableCell>
           {/* <TableCell className="text-right text-muted-foreground">
             <MonetaryValue amountForSign={0} amount={0} variant="sm" />
@@ -97,7 +97,7 @@ export default function HistoryTableInfo({
               <MonetaryValue
                 amountForSign={1}
                 amount={Number(receiver.demand)}
-                variant="sm"
+                variant="allBase"
               />
             </TableCell>
 
@@ -105,7 +105,7 @@ export default function HistoryTableInfo({
               <MonetaryValue
                 amountForSign={0}
                 amount={Number(receiver.fee)}
-                variant="sm"
+                variant="allBase"
               />
             </TableCell>
 
@@ -135,7 +135,7 @@ export default function HistoryTableInfo({
                 (sum, r) => sum + Number(r.fee),
                 0,
               )}
-              variant="sm"
+              variant="allBase"
             />
           </TableCell>
           {/* <TableCell className="text-right text-orange-500">
