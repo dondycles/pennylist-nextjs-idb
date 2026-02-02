@@ -9,7 +9,11 @@ import {
   TableRow,
 } from "./ui/table";
 import MonetaryValue from "./monetary-value";
-import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
+import {
+  HybridTooltip,
+  HybridTooltipContent,
+  HybridTooltipTrigger,
+} from "./ui/hybrid-tooltip";
 
 export default function HistoryTableInfo({
   data,
@@ -23,22 +27,22 @@ export default function HistoryTableInfo({
         <TableRow className="[&>th]:text-muted-foreground">
           <TableHead>Type</TableHead>
           <TableHead>Account</TableHead>
-          <Tooltip>
-            <TooltipTrigger asChild>
+          <HybridTooltip>
+            <HybridTooltipTrigger asChild>
               <TableHead className="text-right">Transfer</TableHead>
-            </TooltipTrigger>
-            <TooltipContent align="end">
+            </HybridTooltipTrigger>
+            <HybridTooltipContent align="end">
               <p>Amount transferred to receivers</p>
-            </TooltipContent>
-          </Tooltip>
-          <Tooltip>
-            <TooltipTrigger asChild>
+            </HybridTooltipContent>
+          </HybridTooltip>
+          <HybridTooltip>
+            <HybridTooltipTrigger asChild>
               <TableHead className="text-right">Fee</TableHead>
-            </TooltipTrigger>
-            <TooltipContent align="end">
+            </HybridTooltipTrigger>
+            <HybridTooltipContent align="end">
               <p>Transfer fee</p>
-            </TooltipContent>
-          </Tooltip>
+            </HybridTooltipContent>
+          </HybridTooltip>
           {/* <TableHead className="text-right">Total</TableHead> */}
         </TableRow>
       </TableHeader>

@@ -6,7 +6,8 @@ import localFont from "next/font/local";
 import { Toaster } from "@/components/ui/sonner";
 import ActionAlertDialog from "@/components/action-alert-dialog";
 import { SerwistProvider } from "@/providers/serwist";
-
+import { TouchProvider } from "@/components/ui/hybrid-tooltip";
+import "./globals.css";
 const gilroy = localFont({
   src: [
     {
@@ -90,20 +91,22 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            <QueryProvider>
-              {children}
-              <ActionAlertDialog />
-              <Toaster
-                toastOptions={{
-                  classNames: {
-                    title: "!text-base !font-bold",
-                    description: "!text-muted-foreground !font-semibold",
-                    icon: "!mr-4",
-                  },
-                }}
-                richColors
-              />
-            </QueryProvider>
+            <TouchProvider>
+              <QueryProvider>
+                {children}
+                <ActionAlertDialog />
+                <Toaster
+                  toastOptions={{
+                    classNames: {
+                      title: "!text-base !font-bold",
+                      description: "!text-muted-foreground !font-semibold",
+                      icon: "!mr-4",
+                    },
+                  }}
+                  richColors
+                />
+              </QueryProvider>
+            </TouchProvider>
           </ThemeProvider>
         </SerwistProvider>
       </body>
