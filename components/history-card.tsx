@@ -112,7 +112,7 @@ function EditOrRemoveCard({
         >
           <div className="grid truncate">
             <HybridTooltip>
-              <HybridTooltipTrigger>
+              <HybridTooltipTrigger asChild>
                 <span className="truncate">{data?.snapshot.after?.name}</span>
               </HybridTooltipTrigger>
               <HybridTooltipContent align="start">
@@ -136,7 +136,7 @@ function EditOrRemoveCard({
                 variant="sm"
                 className={`${data.valueChanged > 0 && "text-green-500"} ${
                   data.valueChanged < 0 && "text-red-500"
-                }`}
+                } `}
               />
             </HybridTooltipTrigger>
             <HybridTooltipContent align="end">

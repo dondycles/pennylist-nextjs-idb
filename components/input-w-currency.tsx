@@ -9,7 +9,7 @@ export default function InpuntWithCurrency({
   ...props
 }: React.ComponentProps<"input"> & { amountForSign?: number }) {
   return (
-    <div className="flex items-center gap-2 relative border">
+    <div className="flex items-center gap-2 relative">
       <MonetaryValue
         amount={0}
         amountForSign={amountForSign}
