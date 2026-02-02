@@ -7,7 +7,14 @@ import { Toaster } from "@/components/ui/sonner";
 import ActionAlertDialog from "@/components/action-alert-dialog";
 import { SerwistProvider } from "@/providers/serwist";
 import { TouchProvider } from "@/components/ui/hybrid-tooltip";
+import { Google_Sans_Flex } from "next/font/google";
 import "./globals.css";
+
+const googleSansFlex = Google_Sans_Flex({
+  subsets: ["latin"],
+  variable: "--font-google-sans-flex",
+  weight: ["400", "700", "1000"],
+});
 const gilroy = localFont({
   src: [
     {
@@ -83,7 +90,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${gilroy.className} antialiased`}>
+      <body className={`${googleSansFlex.className} antialiased`}>
         <SerwistProvider swUrl="/serwist/sw.js">
           <ThemeProvider
             attribute="class"
