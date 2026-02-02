@@ -105,7 +105,7 @@ function EditOrRemoveCard({
       {modifiedData.map((data) => (
         <div
           key={data.money_id}
-          className="z-2 flex flex-col gap-6 justify-between items-center flex-1 text-muted-foreground p-6 font-black border border-dashed rounded-3xl"
+          className="z-2 flex flex-col gap-6 justify-between items-center flex-1 text-muted-foreground p-4 font-black border border-dashed rounded-3xl"
         >
           <div className="flex gap-6 justify-between w-full items-center">
             <HybridTooltip>
@@ -139,11 +139,8 @@ function EditOrRemoveCard({
           {data.reason && (
             <HybridTooltip>
               <HybridTooltipTrigger asChild>
-                <blockquote className="border-l-2 pl-2 italic pr-1">
-                  &quot;{data.reason} Lorem ipsum dolor sit amet consectetur
-                  adipisicing elit. Fugiat, animi voluptatum beatae minima aut
-                  similique ipsum veniam pariatur magnam! Facilis soluta nam
-                  fugiat veritatis cumque. &quot;
+                <blockquote className="border-l-2 pl-2 pr-1 font-bold text-base whitespace-pre-wrap w-full">
+                  &quot;{data.reason}&quot;
                 </blockquote>
               </HybridTooltipTrigger>
               <HybridTooltipContent align="end">
