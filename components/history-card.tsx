@@ -39,7 +39,9 @@ export default function HistoryCard({ history }: { history: History }) {
         </HybridTooltip>
         <HybridTooltip>
           <HybridTooltipTrigger>
-            <span>{new Date(history.date_added).toLocaleString()}</span>
+            <span className="text-xs">
+              {new Date(history.date_added).toLocaleString()}
+            </span>
           </HybridTooltipTrigger>
           <HybridTooltipContent align="end">
             <p>Date Added</p>
@@ -108,22 +110,24 @@ function EditOrRemoveCard({
           key={data.money_id}
           className="z-2 flex gap-6 justify-between items-center flex-1 text-muted-foreground py-4 font-black"
         >
-          <HybridTooltip>
-            <HybridTooltipTrigger>
-              <span className="truncate">{data?.snapshot.after?.name}</span>
-            </HybridTooltipTrigger>
-            <HybridTooltipContent align="start">
-              <p>Money Name</p>
-            </HybridTooltipContent>
-          </HybridTooltip>
-          <HybridTooltip>
-            <HybridTooltipTrigger>
-              <span className="font-normal">{data.reason}</span>
-            </HybridTooltipTrigger>
-            <HybridTooltipContent align="end">
-              <p>Reason</p>
-            </HybridTooltipContent>
-          </HybridTooltip>
+          <div className="grid truncate">
+            <HybridTooltip>
+              <HybridTooltipTrigger>
+                <span className="truncate">{data?.snapshot.after?.name}</span>
+              </HybridTooltipTrigger>
+              <HybridTooltipContent align="start">
+                <p>Money Name</p>
+              </HybridTooltipContent>
+            </HybridTooltip>
+            <HybridTooltip>
+              <HybridTooltipTrigger asChild>
+                <span className="font-normal">{data.reason}</span>
+              </HybridTooltipTrigger>
+              <HybridTooltipContent align="end">
+                <p>Reason</p>
+              </HybridTooltipContent>
+            </HybridTooltip>
+          </div>
           <HybridTooltip>
             <HybridTooltipTrigger>
               <MonetaryValue
