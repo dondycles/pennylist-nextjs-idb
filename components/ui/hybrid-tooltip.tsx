@@ -73,7 +73,7 @@ const HybridTooltipContent = (
 
   return isTouch ? (
     <PopoverContent
-      className="rounded-md px-3 py-1.5 text-xs text-balance"
+      className="rounded-md px-3 py-1.5 text-xs text-balance w-fit"
       {...props}
     />
   ) : (

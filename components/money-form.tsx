@@ -195,9 +195,9 @@ export default function MoneyForm({
     <form
       id="money-form"
       onSubmit={form.handleSubmit(onSubmit)}
-      className="max-w-lg mx-auto w-full px-4 pb-24 flex-1 grid overflow-auto"
+      className="w-full px-4 pb-24 flex flex-col items-center overflow-auto"
     >
-      <FieldGroup className="h-full">
+      <FieldGroup className="h-full max-w-lg">
         <Controller
           name="name"
           control={form.control}
@@ -492,25 +492,27 @@ export default function MoneyForm({
           )}
         />
       </FieldGroup>
-      <Field
-        orientation="horizontal"
-        className="gap-2 max-w-lg justify-end fixed bottom-0 left-1/2 -translate-x-1/2 border-t p-4 bg-background/50 backdrop-blur-2xl"
-      >
-        <Button
-          type="button"
-          variant="secondary"
-          onClick={() => {
-            form.reset();
-            if (action === "add")
-              form.setValue("amount", "" as unknown as number);
-          }}
+      <div className="bg-background/50 backdrop-blur-2xl border-t w-full fixed bottom-0 left-1/2 -translate-x-1/2 ">
+        <Field
+          orientation="horizontal"
+          className="gap-2 max-w-lg w-full mx-auto justify-end p-4 "
         >
-          Reset
-        </Button>
-        <Button className="capitalize" type="submit" form="money-form">
-          {action}
-        </Button>
-      </Field>
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() => {
+              form.reset();
+              if (action === "add")
+                form.setValue("amount", "" as unknown as number);
+            }}
+          >
+            Reset
+          </Button>
+          <Button className="capitalize" type="submit" form="money-form">
+            {action}
+          </Button>
+        </Field>
+      </div>
     </form>
   );
 }

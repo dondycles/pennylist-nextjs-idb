@@ -139,9 +139,9 @@ export default function TransferMoneyForm() {
     <form
       id="transfer-money-form"
       onSubmit={form.handleSubmit(onSubmit)}
-      className="max-w-lg mx-auto w-full px-4 pb-24 flex-1 grid overflow-auto"
+      className="w-full px-4 pb-24 flex flex-col items-center overflow-auto"
     >
-      <FieldGroup className="h-full">
+      <FieldGroup className="h-full max-w-lg">
         <Controller
           name="senderMoney"
           control={form.control}
@@ -513,31 +513,33 @@ export default function TransferMoneyForm() {
           )}
         />
       </FieldGroup>
-      <Field
-        orientation="horizontal"
-        className="gap-2 max-w-lg justify-end fixed bottom-0 left-1/2 -translate-x-1/2 border-t p-4 bg-background/50 backdrop-blur-2xl"
-      >
-        <Button
-          disabled={!form.formState.isValid}
-          type="button"
-          variant="secondary"
-          onClick={() => {
-            form.reset();
-            form.setValue("receiverMoneys", undefined as unknown as []);
-            // if (action === "add")
-            //   form.setValue("amount", "" as unknown as number);
-          }}
+      <div className="bg-background/50 backdrop-blur-2xl border-t w-full fixed bottom-0 left-1/2 -translate-x-1/2 ">
+        <Field
+          orientation="horizontal"
+          className="gap-2 max-w-lg w-full mx-auto justify-end p-4 "
         >
-          Reset
-        </Button>
-        <Button
-          disabled={!form.formState.isValid}
-          type="submit"
-          form="transfer-money-form"
-        >
-          Transfer
-        </Button>
-      </Field>
+          <Button
+            disabled={!form.formState.isValid}
+            type="button"
+            variant="secondary"
+            onClick={() => {
+              form.reset();
+              form.setValue("receiverMoneys", undefined as unknown as []);
+              // if (action === "add")
+              //   form.setValue("amount", "" as unknown as number);
+            }}
+          >
+            Reset
+          </Button>
+          <Button
+            disabled={!form.formState.isValid}
+            type="submit"
+            form="transfer-money-form"
+          >
+            Transfer
+          </Button>
+        </Field>
+      </div>
     </form>
   );
 }
