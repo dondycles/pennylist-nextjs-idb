@@ -145,11 +145,7 @@ function EditOrRemove(money: Money) {
 
       <AlertDialogFooter className="mt-4">
         <AlertDialogCancel className="flex-1">Cancel</AlertDialogCancel>
-        <Button
-          asChild
-          variant={isRemove ? "destructive" : "default"}
-          className="flex-1"
-        >
+        <Button asChild variant="destructive" className="flex-1">
           <AlertDialogAction
             onClick={() => {
               if (isRemove) {
@@ -205,6 +201,7 @@ function EditOrRemove(money: Money) {
                 router.push("/list");
               }
             }}
+            className="flex-1"
           >
             Confirm {isEdit ? "Changes" : "Removal"}
           </AlertDialogAction>

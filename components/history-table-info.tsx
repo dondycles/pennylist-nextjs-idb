@@ -14,6 +14,7 @@ import {
   HybridTooltipContent,
   HybridTooltipTrigger,
 } from "./ui/hybrid-tooltip";
+import Link from "next/link";
 
 export default function HistoryTableInfo({
   data,
@@ -50,7 +51,11 @@ export default function HistoryTableInfo({
         {/* Sender Row */}
         <TableRow className="bg-orange-500/10 font-medium">
           <TableCell className="text-orange-500">Sender</TableCell>
-          <TableCell className="font-black">{data.senderMoney.name}</TableCell>
+          <TableCell className="font-black">
+            <Link href={`/money/${data.senderMoney.id}`}>
+              {data.senderMoney.name}
+            </Link>
+          </TableCell>
           {/* <TableCell className="text-right font-black text-base">
                   <CurrencySign />
                   <Amount amount={Number(senderMoney.amount)} />
@@ -81,7 +86,9 @@ export default function HistoryTableInfo({
         {data.receiverMoneys.map((receiver) => (
           <TableRow key={receiver.id} className="bg-green-500/10">
             <TableCell className="text-green-600">Receiver</TableCell>
-            <TableCell className="font-black">{receiver.name}</TableCell>
+            <TableCell className="font-black">
+              <Link href={`/money/${receiver.id}`}>{receiver.name}</Link>
+            </TableCell>
             {/* <TableCell className="text-right font-black text-base">
                     <CurrencySign />
                     <Amount amount={Number(receiver.amount)} />

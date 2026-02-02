@@ -9,6 +9,7 @@ import {
   HybridTooltipContent,
   HybridTooltipTrigger,
 } from "./ui/hybrid-tooltip";
+import Link from "next/link";
 
 export default function HistoryCard({ history }: { history: History }) {
   // const transferData = history.transfer_history;
@@ -113,7 +114,12 @@ function EditOrRemoveCard({
           <div className="grid truncate">
             <HybridTooltip>
               <HybridTooltipTrigger asChild>
-                <span className="truncate">{data?.snapshot.after?.name}</span>
+                <Link
+                  href={`/money/${data?.snapshot.after?.id}`}
+                  className="truncate"
+                >
+                  {data?.snapshot.after?.name}
+                </Link>
               </HybridTooltipTrigger>
               <HybridTooltipContent align="start">
                 <p>Money Name</p>

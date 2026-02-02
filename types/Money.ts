@@ -1,27 +1,47 @@
 import z from "zod";
 
-export const moneyFormSchema = z.object({
-  id: z.nanoid().min(1, "ID is required."),
-  name: z
-    .string()
-    .min(1, "Name it at least 1 character.")
-    .max(32, "Name must be at most 32 characters."),
-  amount: z.coerce
-    .number<number>("Amount must only be in numeric.")
-    .nonnegative("Amount must not be negative")
-    .default(0)
-    .optional(),
-  fintech: z.string().optional(),
-  tags: z
-    .array(
-      z.object({
-        tag: z.string().min(1, "Tag it with at least 1 character."),
-      }),
-    )
-    .optional(),
-  date_added: z.string().min(1, "Date added is required"),
-  date_edited: z.string(),
-});
+export const moneyFormSchema = z
+  .object({
+    id: z.nanoid().min(1, "ID is required."),
+    name: z
+      .string()
+      .min(1, "Name it at least 1 character.")
+      .max(32, "Name must be at most 32 characters."),
+    amount: z.coerce
+      .number<number>("Amount must only be in numeric.")
+      .nonnegative("Amount must not be negative")
+      .default(0)
+      .optional(),
+    addAmount: z.coerce
+      .number<number>("Amount must only be in numeric.")
+      .nonnegative("Amount must not be negative")
+      .default(0)
+      .optional(),
+    removeAmount: z.coerce
+      .number<number>("Amount must only be in numeric.")
+      .nonnegative("Amount must not be negative")
+      .default(0)
+      .optional(),
+    fintech: z.string().optional(),
+    tags: z
+      .array(
+        z.object({
+          tag: z.string().min(1, "Tag it with at least 1 character."),
+        }),
+      )
+      .optional(),
+    date_added: z.string().min(1, "Date added is required"),
+    date_edited: z.string(),
+  })
+  .superRefine((data, ctx) => {
+    if ((data.removeAmount ?? 0) > (data.amount ?? 0) + (data.addAmount ?? 0)) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Remove amount cannot be greater than current amount.",
+        path: ["removeAmount"],
+      });
+    }
+  });
 
 export type Money = z.infer<typeof moneyFormSchema>;
 

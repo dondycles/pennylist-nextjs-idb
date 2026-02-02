@@ -7,12 +7,13 @@ import {
   FieldError,
   FieldGroup,
   FieldLabel,
+  FieldSeparator,
   FieldSet,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Controller, useFieldArray, useForm } from "react-hook-form";
+import { Controller, useFieldArray, useForm, useWatch } from "react-hook-form";
 import * as z from "zod";
 import { CheckCircle2, ChevronsUpDown, XIcon } from "lucide-react";
 import {
@@ -36,13 +37,14 @@ import { nanoid } from "nanoid";
 import { useRouter } from "next/navigation";
 import { FINTECHS } from "@/lib/contants";
 import { useActionConfirmStore } from "@/store/ActionConfirm";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useHistoryStore } from "@/store/History";
 import { toast } from "sonner";
 import _ from "lodash";
 import BottomDrawer from "./bottom-drawer";
 import Image from "next/image";
 import InpuntWithCurrency from "./input-w-currency";
+import MonetaryValue from "./monetary-value";
 
 export default function MoneyForm({
   targetMoney,
@@ -64,7 +66,12 @@ export default function MoneyForm({
   const form = useForm<z.infer<typeof moneyFormSchema>>({
     resolver: zodResolver(moneyFormSchema),
     defaultValues: targetMoney
-      ? { ...targetMoney, date_edited: date }
+      ? {
+          ...targetMoney,
+          date_edited: date,
+          addAmount: "" as unknown as number,
+          removeAmount: "" as unknown as number,
+        }
       : {
           id: nanoid(),
           name: "",
@@ -73,10 +80,27 @@ export default function MoneyForm({
           tags: [],
           date_added: date,
           date_edited: date,
+          addAmount: "" as unknown as number,
+          removeAmount: "" as unknown as number,
         },
   });
 
   const [openSelectFintect, setOpenSelectFintech] = useState(false);
+
+  const addAmount = useWatch({
+    control: form.control,
+    name: "addAmount",
+  });
+
+  const removeAmount = useWatch({
+    control: form.control,
+    name: "removeAmount",
+  });
+
+  const amount = useWatch({
+    control: form.control,
+    name: "amount",
+  });
 
   const {
     fields: tags,
@@ -152,6 +176,20 @@ export default function MoneyForm({
     setOpenDialog(true);
   }
 
+  // useEffect(() => {
+  //   form.setValue(
+  //     "amount",
+  //     Number(targetMoney?.amount ?? 0) +
+  //       Number(form.getValues("addAmount")) -
+  //       Number(form.getValues("removeAmount")),
+  //   );
+  // }, [addAmount, form, removeAmount, targetMoney?.amount]);
+
+  useEffect(() => {
+    form.setValue("addAmount", "" as unknown as number);
+    form.setValue("removeAmount", "" as unknown as number);
+  }, [amount, form]);
+
   return (
     <form
       id="money-form"
@@ -181,7 +219,9 @@ export default function MoneyForm({
           control={form.control}
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor={field.name}>Amount</FieldLabel>
+              <FieldLabel htmlFor={field.name}>
+                {targetMoney ? "Current " : null}Amount
+              </FieldLabel>
               <InpuntWithCurrency
                 aria-invalid={fieldState.invalid}
                 {...field}
@@ -190,6 +230,67 @@ export default function MoneyForm({
             </Field>
           )}
         />
+        <FieldGroup
+          hidden={!targetMoney}
+          className="border border-dashed rounded-3xl p-4 text-muted-foreground"
+        >
+          <div className="grid  xs:grid-cols-2 gap-4">
+            <Controller
+              name="addAmount"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor={field.name}>Add Amount</FieldLabel>
+                  <InpuntWithCurrency
+                    aria-invalid={fieldState.invalid}
+                    amountForSign={+1}
+                    {...field}
+                  />
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
+                </Field>
+              )}
+            />
+            <Controller
+              name="removeAmount"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor={field.name}>Remove Amount</FieldLabel>
+                  <InpuntWithCurrency
+                    aria-invalid={fieldState.invalid}
+                    amountForSign={-1}
+                    {...field}
+                  />
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
+                </Field>
+              )}
+            />
+          </div>
+          <FieldSeparator />
+          <Field className="grid xs:grid-cols-2 gap-4">
+            <FieldLabel htmlFor="amount">Final Amount</FieldLabel>
+            <InpuntWithCurrency
+              amountForSign={
+                Number(amount ?? 0) +
+                  Number(addAmount ?? 0) -
+                  Number(removeAmount ?? 0) >=
+                0
+                  ? 0
+                  : -1
+              }
+              value={
+                Number(amount ?? 0) +
+                Number(addAmount ?? 0) -
+                Number(removeAmount ?? 0)
+              }
+              readOnly
+            />
+          </Field>
+        </FieldGroup>
         <Controller
           name="fintech"
           control={form.control}

@@ -21,7 +21,7 @@ export default function InpuntWithCurrency({
         {...props}
         type="number"
         placeholder={placeholder || "00.00"}
-        className={cn(`${amountForSign ? "pl-14" : "pl-12"}`, className)}
+        className={cn(`${amountForSign ? "pl-15" : "pl-13"}`, className)}
       />
     </div>
   );
