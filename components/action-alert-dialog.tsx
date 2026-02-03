@@ -88,7 +88,6 @@ function EditOrRemove(money: IntricateMoney) {
     setMoneyInActionNewDataForEditOrRemove,
     moneyInActionNewDataForEditOrRemove,
     setMoneysInActionForTransfer,
-    moneyInActionForEditOrRemove,
   } = useActionConfirmStore();
 
   const total_money = _.sum(moneys.map((money) => Number(money.amount)));
