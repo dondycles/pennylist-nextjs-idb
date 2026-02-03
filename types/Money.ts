@@ -1,8 +1,7 @@
-import _ from "lodash";
 import z from "zod";
 
 // Base schema without transformations - can be extended
-const moneyFormBaseSchema = z.object({
+export const moneyBasicSchema = z.object({
   id: z.nanoid().min(1, "ID is required."),
   name: z
     .string()
@@ -21,6 +20,10 @@ const moneyFormBaseSchema = z.object({
     .optional(),
   date_added: z.string().min(1, "Date added is required"),
   date_edited: z.string(),
+});
+export type BasicMoney = z.infer<typeof moneyBasicSchema>;
+
+const moneyIntricateBaseSchema = moneyBasicSchema.extend({
   operation: z.enum(["add", "deduct"]).default("add").optional(),
   amountChange: z.coerce
     .number<number>("Amount must only be in numeric.")
@@ -31,8 +34,7 @@ const moneyFormBaseSchema = z.object({
   reason: z.string().optional(),
 });
 
-// Full schema with refinements and transformations
-export const moneyFormSchema = moneyFormBaseSchema
+export const moneyIntricateSchema = moneyIntricateBaseSchema
   .superRefine((data, ctx) => {
     if (
       data.adjustmentType === "manual" &&
@@ -66,31 +68,21 @@ export const moneyFormSchema = moneyFormBaseSchema
       return {
         ...data,
         amount: finalAmount,
-        amountChange: undefined,
-        adjustmentType: undefined,
-        reason: undefined,
-        operation: undefined,
       };
     }
 
     if (data.adjustmentType === "manual") {
-      return {
-        ...data,
-        amountChange: undefined,
-        adjustmentType: undefined,
-        reason: undefined,
-        operation: undefined,
-      };
+      return data;
     }
 
     return data;
   });
 
-export type Money = z.infer<typeof moneyFormSchema>;
+export type IntricateMoney = z.infer<typeof moneyIntricateSchema>;
 
 export const moneyTransferFormSchema = z
   .object({
-    senderMoney: moneyFormBaseSchema
+    senderMoney: moneyIntricateBaseSchema
       .extend({
         node: z.enum(["sender", "receiver"]).optional(),
         reason: z.string().optional(),
@@ -112,7 +104,7 @@ export const moneyTransferFormSchema = z
       }),
     receiverMoneys: z
       .array(
-        moneyFormBaseSchema
+        moneyIntricateBaseSchema
           .extend({
             node: z.enum(["sender", "receiver"]).optional(),
             reason: z.string().optional(),

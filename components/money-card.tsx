@@ -1,4 +1,4 @@
-import { Money } from "@/types/Money";
+import { BasicMoney } from "@/types/Money";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,11 +20,11 @@ export default function MoneyCard({
   className,
   oldMoney,
 }: {
-  money: Money;
+  money: BasicMoney;
   doAction?: (type: "edit" | "remove" | "transfer") => void;
   withOptions?: boolean;
   className?: string;
-  oldMoney?: Money;
+  oldMoney?: BasicMoney;
 }) {
   const fintechData = FINTECHS.find(
     (fintech) => fintech.value === money.fintech,

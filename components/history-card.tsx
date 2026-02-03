@@ -1,6 +1,4 @@
-// import { FINTECHS } from "@/lib/contants";
 import { History } from "@/types/History";
-// import Image from "next/image";
 import HistoryTableInfo from "./history-table-info";
 import MonetaryValue from "./monetary-value";
 import { ChevronDown, Pencil, Plane, Plus, Trash } from "lucide-react";
@@ -12,18 +10,9 @@ import {
 import Link from "next/link";
 
 export default function HistoryCard({ history }: { history: History }) {
-  // const transferData = history.transfer_history;
-  // const editOrRemoveData = history.edit_or_remove_history;l
-
-  // const total_money_after_transaction =
-  //   transferData?.snapshot.after.total_money ??
-  //   editOrRemoveData?.reduce((acc, data) => {
-  //     return acc + Number(data.snapshot.after.money?.amount ?? 0);
-  //   }, 0);
-
   return (
     <div className="rounded-4xl flex flex-col bg-muted/75 dark:bg-muted/25 w-full p-6 justify-between relative overflow-hidden">
-      <div className="z-2 flex gap-6 justify-between items-start flex-1 text-muted-foreground mb-6 text-sm font-bold">
+      <div className="z-2 flex gap-6 justify-between items-start flex-1 text-muted-foreground mb-6 font-bold text-sm">
         <HybridTooltip>
           <HybridTooltipTrigger>
             <span className="capitalize truncate [&>svg]:mr-1.5 [&>svg]:mb-1 [&>svg]:size-3.5  [&>svg]:inline-flex">
@@ -63,7 +52,7 @@ export default function HistoryCard({ history }: { history: History }) {
         </>
       )}
       <div className="z-2 flex gap-6 justify-between items-end flex-1 text-muted-foreground mt-6">
-        <span className="font-bold text-sm">Total Money </span>
+        <span className="font-bold text-sm">Total Money</span>
         <HybridTooltip>
           <HybridTooltipTrigger>
             <MonetaryValue amount={history.total_money.after ?? 0} />
@@ -73,17 +62,6 @@ export default function HistoryCard({ history }: { history: History }) {
           </HybridTooltipContent>
         </HybridTooltip>
       </div>
-      {/* <div className="absolute top-0 left-1/2 w-full h-full z-0  opacity-10 pointer-events-none">
-        {fintechData ? (
-          fintechData.bg ? (
-            <Image
-              alt={`${fintechData.label}-${editOrRemoveData?.snapshot.after.money?.name}`}
-              src={fintechData.bg}
-              className="w-auto h-[125%] object-cover object-left"
-            />
-          ) : null
-        ) : null}
-      </div> */}
     </div>
   );
 }
@@ -105,7 +83,7 @@ function EditOrRemoveCard({
       {modifiedData.map((data) => (
         <div
           key={data.money_id}
-          className="z-2 flex flex-col gap-6 justify-between items-center flex-1 text-muted-foreground p-4 font-black border border-dashed rounded-3xl"
+          className="z-2 flex flex-col gap-6 justify-between items-center flex-1 text-muted-foreground p-6 font-black border border-dashed rounded-3xl"
         >
           <div className="flex gap-6 justify-between w-full items-center">
             <HybridTooltip>

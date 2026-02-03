@@ -1,11 +1,11 @@
 import z from "zod";
-import { moneyFormSchema, moneyTransferFormSchema } from "./Money";
+import { moneyTransferFormSchema, moneyBasicSchema } from "./Money";
 
 const editOrRemoveHistory = z.object({
   money_id: z.nanoid().min(1, "ID is required."),
   snapshot: z.object({
-    before: moneyFormSchema.optional(),
-    after: moneyFormSchema.optional(),
+    before: moneyBasicSchema.optional(),
+    after: moneyBasicSchema.optional(),
   }),
   reason: z.string().optional(),
 });
@@ -23,7 +23,7 @@ export const historyFormSchema = z.object({
     after: z
       .number("Amount must only be in numeric.")
       .nonnegative("Amount must not be negative"),
-  })
+  }),
 });
 
 export type History = z.infer<typeof historyFormSchema>;

@@ -555,8 +555,8 @@ function Cell({
   checked: boolean;
 }) {
   return (
-    <div className="w-full h-full p-4 z-0 relative overflow-hidden flex flex-col gap-2">
-      <p className="z-2 leading-none break-all line-clamp-2 text-muted-foreground text-base font-black">
+    <div className="w-full h-full p-4 z-0 relative overflow-hidden flex flex-col">
+      <p className="z-2 break-all line-clamp-2 text-muted-foreground text-base font-black">
         <span>{m.name}</span>
         {m.tags?.map((tag, i) => (
           <span
@@ -568,9 +568,7 @@ function Cell({
           </span>
         ))}
       </p>
-      <div className="mb-0 mt-auto ml-auto mr-0">
-        <MonetaryValue amount={m.amount ?? 0} />
-      </div>
+      <MonetaryValue amount={m.amount ?? 0} />
       <Checker checked={checked} />
       <div className="absolute -z-20 top-0 left-0 h-full w-full bg-linear-to-b from-background to-transparent"></div>
       {m.fintech ? (

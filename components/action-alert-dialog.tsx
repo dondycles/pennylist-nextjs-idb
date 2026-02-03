@@ -19,7 +19,7 @@ import _ from "lodash";
 import { useHistoryStore } from "@/store/History";
 import { nanoid } from "nanoid";
 import Loader from "./loader";
-import { Money } from "@/types/Money";
+import { IntricateMoney } from "@/types/Money";
 import HistoryTableInfo from "./history-table-info";
 import { useListSettingsStore } from "@/store/ListSettings";
 
@@ -75,7 +75,7 @@ export default function ActionAlertDialog() {
   );
 }
 
-function EditOrRemove(money: Money) {
+function EditOrRemove(money: IntricateMoney) {
   const router = useRouter();
   const { remove, edit, moneys } = useMoneysStore();
   const { addHistory } = useHistoryStore();
@@ -238,18 +238,15 @@ function Transfer() {
                 ...senderMoney,
                 amount:
                   Number(senderMoney.amount) - Number(senderMoney.demands),
-                date_edited: date,
               };
               edit(updatedSender);
               receiverMoneys.forEach((receiver) => {
                 const updatedReceiver = {
                   ...receiver,
                   amount: Number(receiver.amount) + Number(receiver.demand),
-                  date_edited: date,
                 };
                 edit(updatedReceiver);
               });
-
               addHistory({
                 id: nanoid(),
                 date_added: date,

@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { Money, MoneyTransfer } from "@/types/Money";
+import type { IntricateMoney, MoneyTransfer } from "@/types/Money";
 
 export type ActionConfirmStore = {
   typeOfAction:
@@ -22,11 +22,13 @@ export type ActionConfirmStore = {
   openDialog: boolean;
   setOpenDialog: (state: boolean) => void;
 
-  moneyInActionForEditOrRemove: Money | undefined;
-  setMoneyInActionForEditOrRemove: (money: Money | undefined) => void;
+  moneyInActionForEditOrRemove: IntricateMoney | undefined;
+  setMoneyInActionForEditOrRemove: (money: IntricateMoney | undefined) => void;
 
-  moneyInActionNewDataForEditOrRemove: Money | undefined;
-  setMoneyInActionNewDataForEditOrRemove: (money: Money | undefined) => void;
+  moneyInActionNewDataForEditOrRemove: IntricateMoney | undefined;
+  setMoneyInActionNewDataForEditOrRemove: (
+    money: IntricateMoney | undefined,
+  ) => void;
 
   moneysInActionForTransfer: MoneyTransfer | undefined;
   setMoneysInActionForTransfer: (money: MoneyTransfer | undefined) => void;

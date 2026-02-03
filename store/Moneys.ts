@@ -1,13 +1,13 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import type { Money } from "@/types/Money";
+import type { BasicMoney } from "@/types/Money";
 import { idb } from "@/lib/idb";
 
 export type MoneysStore = {
-  moneys: Money[];
-  add: (money: Money) => void;
-  remove: (money: Money) => void;
-  edit: (money: Money) => void;
+  moneys: BasicMoney[];
+  add: (money: BasicMoney) => void;
+  remove: (money: BasicMoney) => void;
+  edit: (money: BasicMoney) => void;
   _hasHydrated: boolean;
   setHasHydrated: (state: boolean) => void;
   reset: () => void;
@@ -19,13 +19,13 @@ export const useMoneysStore = create<MoneysStore>()(
       moneys: [],
       add: (money) =>
         set(({ moneys }) => {
-          const newMoneys: Money[] = [...moneys, money];
+          const newMoneys: BasicMoney[] = [...moneys, money];
 
           return { moneys: newMoneys };
         }),
       remove: (moneyToBeRemoved) => {
         set(({ moneys }) => {
-          const newMoneys: Money[] = [
+          const newMoneys: BasicMoney[] = [
             ...moneys.filter((money) => money.id !== moneyToBeRemoved.id),
           ];
           return { moneys: newMoneys };

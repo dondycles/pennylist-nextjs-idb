@@ -1,10 +1,10 @@
 "use client";
 
 import Loader from "@/components/loader";
-import MoneyForm from "@/components/money-form";
 import { useMoneysStore } from "@/store/Moneys";
 import { redirect } from "next/navigation";
 import MoneyDoesNotExist from "@/components/money-does-not-exist";
+import EditMoneyForm from "./edit-money-form";
 
 export default function EditMoneyComponent({
   targetMoneyId,
@@ -22,5 +22,5 @@ export default function EditMoneyComponent({
 
   if (!targetMoney) return <MoneyDoesNotExist />;
 
-  return <MoneyForm action="edit" targetMoney={targetMoney} />;
+  return <EditMoneyForm targetMoney={targetMoney} />;
 }
