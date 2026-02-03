@@ -621,22 +621,31 @@ export default function MoneyForm({
             </FieldSet>
           )}
         />
-        <Controller
-          name="reason"
-          control={form.control}
-          render={({ field, fieldState }) => (
-            <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor={field.name}>Reason</FieldLabel>
-              <Textarea
-                {...field}
-                id={field.name}
-                aria-invalid={fieldState.invalid}
-                placeholder="Reason"
-              />
-              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-            </Field>
-          )}
-        />
+        {action === "edit" ? (
+          <Controller
+            name="reason"
+            control={form.control}
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldContent>
+                  <FieldLabel htmlFor={field.name}>Reason</FieldLabel>
+                  <FieldDescription>
+                    Optional but will help you in the future.
+                  </FieldDescription>
+                </FieldContent>
+                <Textarea
+                  {...field}
+                  id={field.name}
+                  aria-invalid={fieldState.invalid}
+                  placeholder="e.g. 'Bought a coffee'."
+                />
+                {fieldState.invalid && (
+                  <FieldError errors={[fieldState.error]} />
+                )}
+              </Field>
+            )}
+          />
+        ) : null}
       </FieldGroup>
       <div className="bg-background/50 backdrop-blur-2xl border-t w-full fixed bottom-0 left-1/2 -translate-x-1/2 ">
         <Field

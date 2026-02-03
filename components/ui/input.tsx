@@ -12,7 +12,7 @@ function Input({ className, type, ...props }: React.ComponentProps<"input">) {
         "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
         "aria-invalid:border aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive font-bold text-base border border-input",
         type === "number" &&
-          "text-right font-black text-xl placeholder:text-xl placeholder:font-black",
+          "text-right font-black text-lg placeholder:text-lg placeholder:font-black",
         className,
       )}
       {...props}

@@ -113,7 +113,7 @@ function EditOrRemove(money: Money) {
           money={money}
           className="bg-transparent border border-dashed"
         />
-        <pre>{JSON.stringify(money, null, 2)}</pre>
+        {/* <pre>{JSON.stringify(money, null, 2)}</pre> */}
         {isEdit && moneyInActionNewDataForEditOrRemove && (
           <>
             <ChevronDown className="text-muted-foreground/75 dark:text-muted-foreground/25 mx-auto" />
@@ -123,9 +123,9 @@ function EditOrRemove(money: Money) {
               money={moneyInActionNewDataForEditOrRemove}
               className="bg-transparent border border-dashed"
             />
-            <pre>
+            {/* <pre>
               {JSON.stringify(moneyInActionNewDataForEditOrRemove, null, 2)}
-            </pre>
+            </pre> */}
           </>
         )}
       </div>

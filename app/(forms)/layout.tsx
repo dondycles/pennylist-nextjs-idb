@@ -25,7 +25,7 @@ export default function FormsPageLayout({
               {pathname === "/edit-money" ? "Edit" : null}
               {pathname.startsWith("/transfer-money") ? "Transfer" : null} Money
             </h1>
-            <p className="text-muted-foreground font-semibold">
+            <p className="text-muted-foreground text-sm font-normal">
               Please fill the fields below.
             </p>
           </div>
