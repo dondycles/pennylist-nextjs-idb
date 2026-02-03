@@ -126,7 +126,9 @@ const CurrencySelect = React.forwardRef<HTMLButtonElement, CurrencySelectProps>(
         </PopoverTrigger>
         <PopoverContent align="end" className="p-0">
           <Command className="rounded-4xl">
-            <CommandInput placeholder="Search currency..." />
+            <div className="p-2 border-b">
+              <CommandInput placeholder="Search currency..." />
+            </div>
             <CommandList>
               <CommandEmpty>No currency found.</CommandEmpty>
               <CommandGroup>
@@ -141,7 +143,7 @@ const CurrencySelect = React.forwardRef<HTMLButtonElement, CurrencySelectProps>(
                       setOpen(false);
                     }}
                   >
-                    <div className="flex items-center w-full gap-2">
+                    <div className="flex items-center w-full gap-2 font-bold">
                       <span className="text-sm text-muted-foreground w-8 text-left">
                         {currency?.code}
                       </span>

@@ -12,10 +12,10 @@ import Link from "next/link";
 export default function HistoryCard({ history }: { history: History }) {
   return (
     <div className="rounded-4xl flex flex-col bg-muted/75 dark:bg-muted/25 w-full p-6 justify-between relative overflow-hidden">
-      <div className="z-2 flex gap-6 justify-between items-start flex-1 text-muted-foreground mb-6 font-bold text-sm">
+      <div className="z-2 flex gap-6 justify-between items-start flex-1 text-muted-foreground mb-6 font-bold">
         <HybridTooltip>
           <HybridTooltipTrigger>
-            <span className="capitalize truncate [&>svg]:mr-1.5 [&>svg]:mb-1 [&>svg]:size-3.5  [&>svg]:inline-flex">
+            <span className="capitalize truncate [&>svg]:mr-1.5 [&>svg]:mb-1 [&>svg]:size-3.5  [&>svg]:inline-flex text-base">
               {history.type === "add" ? <Plus /> : null}
               {history.type === "delete" ? <Trash /> : null}
               {history.type === "transfer" ? <Plane /> : null}
@@ -29,7 +29,7 @@ export default function HistoryCard({ history }: { history: History }) {
         </HybridTooltip>
         <HybridTooltip>
           <HybridTooltipTrigger>
-            <span className="text-xs">
+            <span className="text-sm">
               {new Date(history.date_added).toLocaleString()}
             </span>
           </HybridTooltipTrigger>
@@ -52,7 +52,7 @@ export default function HistoryCard({ history }: { history: History }) {
         </>
       )}
       <div className="z-2 flex gap-6 justify-between items-end flex-1 text-muted-foreground mt-6">
-        <span className="font-bold text-sm">Total Money</span>
+        <span className="text-base font-bold">Total Money</span>
         <HybridTooltip>
           <HybridTooltipTrigger>
             <MonetaryValue amount={history.total_money.after ?? 0} />
@@ -83,9 +83,9 @@ function EditOrRemoveCard({
       {modifiedData.map((data) => (
         <div
           key={data.money_id}
-          className="z-2 flex flex-col gap-6 justify-between items-center flex-1 text-muted-foreground p-6 font-black border border-dashed rounded-3xl"
+          className="z-2 flex flex-col gap-2 justify-between items-center flex-1 text-muted-foreground p-6 font-bold text-base border border-dashed rounded-3xl"
         >
-          <div className="flex gap-6 justify-between w-full items-center">
+          <div className="flex gap-6 justify-between w-full items-start">
             <HybridTooltip>
               <HybridTooltipTrigger asChild>
                 <Link
@@ -117,7 +117,7 @@ function EditOrRemoveCard({
           {data.reason && (
             <HybridTooltip>
               <HybridTooltipTrigger asChild>
-                <blockquote className="border-l-2 pl-2 pr-1 font-bold text-base whitespace-pre-wrap w-full">
+                <blockquote className="border-l-2 pl-2 pr-1 font-normal text-base whitespace-pre-wrap w-full">
                   &quot;{data.reason}&quot;
                 </blockquote>
               </HybridTooltipTrigger>

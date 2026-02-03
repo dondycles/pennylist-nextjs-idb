@@ -40,7 +40,7 @@ export default function ListsLayout({
     <Main>
       <div className="rounded-b-4xl flex flex-col gap-6 text-center bg-muted/75 dark:bg-muted/20 w-full p-6">
         <div className="grid">
-          <span className="font-black text-muted-foreground">Total Money</span>
+          <span className="font-bold text-muted-foreground">Total Money</span>
           <MonetaryValue amount={totalMoney} />
         </div>
         <ButtonGroup className="mx-auto">

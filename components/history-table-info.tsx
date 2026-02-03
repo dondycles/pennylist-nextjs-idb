@@ -23,7 +23,7 @@ export default function HistoryTableInfo({
 }) {
   if (!data) return null;
   return (
-    <Table className="[&>*>tr>*]:py-6 [&>*>tr>*]:first:pl-6 [&>*>tr>*]:last:pr-6">
+    <Table className="[&>*>tr>*]:py-6 [&>*>tr>*]:first:pl-6 [&>*>tr>*]:last:pr-6 font-bold text-sm  [&>*>*>th]:font-bold [&>*>*>td]:font-bold">
       <TableHeader>
         <TableRow className="[&>th]:text-muted-foreground">
           <TableHead>Type</TableHead>
@@ -47,9 +47,9 @@ export default function HistoryTableInfo({
         </TableRow>
       </TableHeader>
       <TableBody>
-        <TableRow className="bg-orange-500/10  font-bold text-sm">
+        <TableRow className="bg-orange-500/10 ">
           <TableCell className="text-orange-500">Sender</TableCell>
-          <TableCell className="font-black">
+          <TableCell>
             <Link href={`/money/${data.senderMoney.id}`}>
               {data.senderMoney.name}
             </Link>
@@ -69,12 +69,9 @@ export default function HistoryTableInfo({
         </TableRow>
 
         {data.receiverMoneys.map((receiver) => (
-          <TableRow
-            key={receiver.id}
-            className="bg-green-500/10 font-bold text-sm"
-          >
+          <TableRow key={receiver.id} className="bg-green-500/10">
             <TableCell className="text-green-600">Receiver</TableCell>
-            <TableCell className="font-black">
+            <TableCell>
               <Link href={`/money/${receiver.id}`}>{receiver.name}</Link>
             </TableCell>
 
@@ -98,10 +95,7 @@ export default function HistoryTableInfo({
       </TableBody>
       <TableFooter>
         <TableRow>
-          <TableCell
-            colSpan={3}
-            className="text-muted-foreground font-bold text-sm"
-          >
+          <TableCell colSpan={3} className="text-muted-foreground">
             Total
           </TableCell>
           <TableCell className="text-right text-red-500">

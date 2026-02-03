@@ -37,7 +37,7 @@ export default function MoneyCard({
       )}
     >
       <div className="grid z-2 flex-1">
-        <p className="font-black text-muted-foreground truncate">
+        <p className="font-bold text-muted-foreground truncate">
           <span>{money.name}</span>
           {money.tags?.map((tag, i) => (
             <span

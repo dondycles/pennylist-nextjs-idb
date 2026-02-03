@@ -56,7 +56,6 @@ export default function SettingsDialog({
           <DialogTitle>Settings</DialogTitle>
           <DialogDescription>Set things below.</DialogDescription>
         </DialogHeader>
-        {/* <pre>{JSON.stringify(order, null, 2)}</pre> */}
         {!_hasHydrated ? (
           <Loader />
         ) : (
@@ -220,7 +219,9 @@ function MiniCard({
   return (
     <div className="bg-muted dark:bg-muted/25 rounded-3xl p-4 flex mxs:flex-row flex-col gap-2 justify-end items-end mxs:items-center">
       <div className="grid flex-1 w-full">
-        <Label htmlFor={id}>{title}</Label>
+        <Label htmlFor={id} className="font-bold">
+          {title}
+        </Label>
         {description && (
           <span className="text-sm text-muted-foreground">{description}</span>
         )}

@@ -4,13 +4,13 @@ import MoneyCard from "@/components/money-card";
 import { useActionConfirmStore } from "@/store/ActionConfirm";
 import { useRouter } from "next/navigation";
 import { useListSettingsStore } from "@/store/ListSettings";
-import { Money } from "@/types/Money";
+import { BasicMoney } from "@/types/Money";
 
 export default function ListPageComponent() {
   const { moneys } = useMoneysStore();
   const { order } = useListSettingsStore();
 
-  const sortFn = (a: Money, b: Money) => {
+  const sortFn = (a: BasicMoney, b: BasicMoney) => {
     if (order.by === "amount" && order.flow[0].value === "first-to-last") {
       return (a.amount ?? 0) - (b.amount ?? 0);
     }

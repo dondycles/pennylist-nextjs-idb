@@ -1,4 +1,4 @@
-import { Money } from "@/types/Money";
+import { BasicMoney } from "@/types/Money";
 
 import Image from "next/image";
 import { FINTECHS } from "@/lib/contants";
@@ -7,7 +7,7 @@ export default function MoneyTransferCardWForm({
   money,
   children,
 }: {
-  money: Money;
+  money: BasicMoney;
   children?: React.ReactNode;
 }) {
   const fintechData = FINTECHS.find(
