@@ -38,12 +38,13 @@ export default function MoneyCard({
     >
       <div className="grid z-2 flex-1">
         <p className="font-black text-muted-foreground truncate">
-          <span>{money.name} </span>
+          <span>{money.name}</span>
           {money.tags?.map((tag, i) => (
             <span
               className="text-foreground/25"
               key={`${money.name}-#${tag.tag}-${i}`}
             >
+              {" "}
               #{tag.tag.toLowerCase()}{" "}
             </span>
           ))}

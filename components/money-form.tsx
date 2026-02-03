@@ -8,16 +8,14 @@ import {
   FieldGroup,
   FieldLabel,
   FieldLegend,
-  FieldSeparator,
   FieldSet,
-  FieldTitle,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useFieldArray, useForm, useWatch } from "react-hook-form";
 import * as z from "zod";
-import { CheckCircle2, ChevronsUpDown, Minus, Plus, XIcon } from "lucide-react";
+import { ChevronsUpDown, Minus, Plus, XIcon } from "lucide-react";
 import {
   Command,
   CommandEmpty,
@@ -51,6 +49,7 @@ import MonetaryValue from "./monetary-value";
 import { Textarea } from "./ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "./ui/separator";
+import Checker from "./checker";
 export default function MoneyForm({
   targetMoney,
   action,
@@ -514,17 +513,13 @@ export default function MoneyForm({
                                 {/*<p className="z-2 leading-none break-all line-clamp-2">
                                   {fintech.label}
                                 </p>*/}
-                                <CheckCircle2
-                                  className={cn(
-                                    "ml-auto z-2 absolute bottom-4 left-1/2 -translate-x-1/2 text-green-500 size-6 drop-shadow-lg bg-background rounded-full",
-                                    fintech.value === field.value
-                                      ? "opacity-100"
-                                      : "opacity-0",
-                                  )}
+
+                                <Checker
+                                  checked={fintech.value === field.value}
                                 />
                                 <Image
                                   src={fintech.bg}
-                                  className="m-auto -z-10 drop-shadow"
+                                  className="m-auto -z-10 pointer-events-none"
                                   alt={fintech.label}
                                 />
                               </div>

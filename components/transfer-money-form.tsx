@@ -14,7 +14,7 @@ import { Command as CommandPrimitive } from "cmdk";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useFieldArray, useForm, useWatch } from "react-hook-form";
 import * as z from "zod";
-import { CheckCircle2, Plus, X } from "lucide-react";
+import { Plus, X } from "lucide-react";
 import {
   Command,
   CommandEmpty,
@@ -39,11 +39,14 @@ import { toast } from "sonner";
 import { useActionConfirmStore } from "@/store/ActionConfirm";
 import InpuntWithCurrency from "./input-w-currency";
 import MonetaryValue from "./monetary-value";
+import Checker from "./checker";
 
 export default function TransferMoneyForm() {
   const { moneys } = useMoneysStore();
   const { setOpenDialog, setMoneysInActionForTransfer, setTypeOfAction } =
     useActionConfirmStore();
+
+  const COMMAND_ITEM_CLASSNAME = "border rounded-4xl p-0 overflow-hidden";
 
   const form = useForm<z.infer<typeof moneyTransferFormSchema>>({
     resolver: zodResolver(moneyTransferFormSchema),
@@ -192,7 +195,7 @@ export default function TransferMoneyForm() {
                                   });
                                   form.setValue("receiverMoneys", []);
                                 }}
-                                className="aspect-square border rounded-4xl p-0 overflow-hidden"
+                                className={COMMAND_ITEM_CLASSNAME}
                                 style={{
                                   background: FINTECHS.find(
                                     (f) => f.value === m.fintech,
@@ -367,7 +370,7 @@ export default function TransferMoneyForm() {
                                     // form.setValue("senderMoney", m);
                                     // setOpenSelectFintech(false);
                                   }}
-                                  className="aspect-square border rounded-4xl p-0 overflow-hidden"
+                                  className={COMMAND_ITEM_CLASSNAME}
                                   style={{
                                     background: FINTECHS.find(
                                       (f) => f.value === m.fintech,
@@ -552,17 +555,23 @@ function Cell({
   checked: boolean;
 }) {
   return (
-    <div className="w-full h-full p-4 z-0 relative overflow-hidden ">
-      <p className="z-2 leading-none break-all line-clamp-2 text-muted-foreground text-base">
-        {m.name}
+    <div className="w-full h-full p-4 z-0 relative overflow-hidden flex flex-col gap-2">
+      <p className="z-2 leading-none break-all line-clamp-2 text-muted-foreground text-base font-black">
+        <span>{m.name}</span>
+        {m.tags?.map((tag, i) => (
+          <span
+            className="text-foreground/25"
+            key={`${m.name}-#${tag.tag}-${i}`}
+          >
+            {" "}
+            #{tag.tag.toLowerCase()}
+          </span>
+        ))}
       </p>
-      <MonetaryValue amount={m.amount ?? 0} />
-      <CheckCircle2
-        className={cn(
-          "ml-auto z-2 absolute bottom-4 left-1/2 -translate-x-1/2 text-green-500 size-6 drop-shadow-lg bg-background rounded-full",
-          checked ? "opacity-100" : "opacity-0",
-        )}
-      />
+      <div className="mb-0 mt-auto ml-auto mr-0">
+        <MonetaryValue amount={m.amount ?? 0} />
+      </div>
+      <Checker checked={checked} />
       <div className="absolute -z-20 top-0 left-0 h-full w-full bg-linear-to-b from-background to-transparent"></div>
       {m.fintech ? (
         <Image
@@ -577,7 +586,7 @@ function Cell({
 
 function CellsWrapper({ children }: { children: React.ReactNode }) {
   return (
-    <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 gap-2 max-w-lg mx-auto">
+    <div className="grid grid-cols-1  mmxs:grid-cols-2 gap-2 max-w-lg mx-auto">
       {children}
     </div>
   );
