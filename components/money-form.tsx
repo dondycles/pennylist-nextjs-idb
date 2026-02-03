@@ -50,6 +50,7 @@ import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
 import MonetaryValue from "./monetary-value";
 import { Textarea } from "./ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Separator } from "./ui/separator";
 export default function MoneyForm({
   targetMoney,
   action,
@@ -273,12 +274,12 @@ export default function MoneyForm({
                       <Field
                         key={type}
                         orientation="horizontal"
-                        className="bg-muted rounded-full px-3 py-1 border border-input"
+                        className="bg-muted rounded-full px-3 border border-input h-9"
                       >
                         <RadioGroupItem value={type} id={type} />
                         <FieldLabel
                           htmlFor={type}
-                          className="capitalize text-base font-bold"
+                          className="capitalize text-base font-bold h-full"
                         >
                           {type === "addDeduct" ? "Add/Deduct" : type}
                         </FieldLabel>
@@ -286,127 +287,155 @@ export default function MoneyForm({
                     ))}
                   </RadioGroup>
                   {field.value === "manual" ? (
-                    <Controller
-                      name="amount"
-                      control={form.control}
-                      render={({ field, fieldState }) => (
-                        <Field data-invalid={fieldState.invalid}>
-                          <FieldLabel htmlFor={field.name}>
-                            Manual Amount
-                          </FieldLabel>
-                          <InpuntWithCurrency
-                            aria-invalid={fieldState.invalid}
-                            id={field.name}
-                            min={0}
-                            {...field}
-                          />
-                          {fieldState.invalid && (
-                            <FieldError errors={[fieldState.error]} />
-                          )}
-                        </Field>
-                      )}
-                    />
+                    <>
+                      <Controller
+                        name="amount"
+                        control={form.control}
+                        render={({ field, fieldState }) => (
+                          <Field data-invalid={fieldState.invalid}>
+                            <FieldContent>
+                              <FieldLabel
+                                className="sr-only"
+                                htmlFor={field.name}
+                              >
+                                Manual adjustment
+                              </FieldLabel>
+                              <FieldDescription>
+                                Manually set the amount
+                              </FieldDescription>
+                            </FieldContent>
+                            <InpuntWithCurrency
+                              aria-invalid={fieldState.invalid}
+                              id={field.name}
+                              min={0}
+                              {...field}
+                            />
+                            {fieldState.invalid && (
+                              <FieldError errors={[fieldState.error]} />
+                            )}
+                          </Field>
+                        )}
+                      />
+                      <Separator className="opacity-50" />
+                      <Item
+                        name="Difference"
+                        amount={targetMoney.amount - Number(amount)}
+                        amountForSign={
+                          targetMoney.amount - Number(amount) <= 0
+                            ? targetMoney.amount - Number(amount) === 0
+                              ? 0
+                              : 1
+                            : -1
+                        }
+                      />
+                    </>
                   ) : null}
                   {field.value === "addDeduct" ? (
-                    <FieldGroup hidden={!targetMoney}>
-                      <div className="flex flex-col gap-4">
-                        <Controller
-                          name="amountChange"
-                          control={form.control}
-                          render={({ field, fieldState }) => (
-                            <Field data-invalid={fieldState.invalid}>
-                              <FieldLabel htmlFor={field.name}>
-                                Add/Deduct Amount
+                    <>
+                      <Controller
+                        name="amountChange"
+                        control={form.control}
+                        render={({ field, fieldState }) => (
+                          <Field data-invalid={fieldState.invalid}>
+                            <FieldContent>
+                              <FieldLabel
+                                className="sr-only"
+                                htmlFor={field.name}
+                              >
+                                Add/Deduct adjustment
                               </FieldLabel>
+                              <FieldDescription>
+                                Add or deduct from the current amount
+                              </FieldDescription>
+                            </FieldContent>
+                            <div className="flex flex-row gap-2 *:data-[slot=input-w-currency-container]:w-full">
+                              <Controller
+                                name="operation"
+                                control={form.control}
+                                render={({ field, fieldState }) => (
+                                  <FieldSet data-invalid={fieldState.invalid}>
+                                    <RadioGroup
+                                      name={field.name}
+                                      value={field.value}
+                                      onValueChange={field.onChange}
+                                      aria-invalid={fieldState.invalid}
+                                      className="[&>*>*>svg]:size-4 flex gap-2"
+                                    >
+                                      {["add", "deduct"].map((operation) => (
+                                        <Field
+                                          key={operation}
+                                          orientation="horizontal"
+                                          className={`bg-muted rounded-full size-9  border border-input ${field.value === operation ? "ring-muted-foreground ring-2 " : ""}`}
+                                        >
+                                          <RadioGroupItem
+                                            value={operation}
+                                            id={operation}
+                                            className="sr-only"
+                                          />
+                                          <FieldLabel
+                                            htmlFor={operation}
+                                            className="flex items-center justify-center w-full h-full rounded-full"
+                                          >
+                                            {operation === "add" ? (
+                                              <Plus />
+                                            ) : (
+                                              <Minus />
+                                            )}
+                                          </FieldLabel>
+                                        </Field>
+                                      ))}
+                                    </RadioGroup>
+                                    {fieldState.invalid && (
+                                      <FieldError errors={[fieldState.error]} />
+                                    )}
+                                  </FieldSet>
+                                )}
+                              />
                               <InpuntWithCurrency
                                 min={0}
                                 aria-invalid={fieldState.invalid}
                                 amountForSign={operation === "add" ? 1 : -1}
                                 id={field.name}
                                 {...field}
+                                className="flex-1"
                               />
-                              {fieldState.invalid && (
-                                <FieldError errors={[fieldState.error]} />
-                              )}
-                            </Field>
-                          )}
-                        />
-                        <Controller
-                          name="operation"
-                          control={form.control}
-                          render={({ field, fieldState }) => (
-                            <FieldSet data-invalid={fieldState.invalid}>
-                              <FieldLegend variant="label">
-                                Operation
-                              </FieldLegend>
-                              <RadioGroup
-                                name={field.name}
-                                value={field.value}
-                                onValueChange={field.onChange}
-                                aria-invalid={fieldState.invalid}
-                                className="[&>*>*>svg]:size-4 grid-cols-[1fr_1fr] gap-4"
-                              >
-                                {["add", "deduct"].map((operation) => (
-                                  <Field
-                                    key={operation}
-                                    orientation="horizontal"
-                                    className="bg-muted rounded-full px-3 py-1 border border-input"
-                                  >
-                                    <RadioGroupItem
-                                      value={operation}
-                                      id={operation}
-                                    />
-                                    <FieldLabel
-                                      htmlFor={operation}
-                                      className="capitalize text-base font-bold"
-                                    >
-                                      {operation === "add" ? (
-                                        <Plus />
-                                      ) : (
-                                        <Minus />
-                                      )}{" "}
-                                      {operation}
-                                    </FieldLabel>
-                                  </Field>
-                                ))}
-                              </RadioGroup>
-                              {fieldState.invalid && (
-                                <FieldError errors={[fieldState.error]} />
-                              )}
-                            </FieldSet>
-                          )}
-                        />
-                      </div>
-                      <FieldSeparator className="opacity-50" />
-                      <Field className="flex flex-row gap-4 [&>*]:w-fit">
-                        <FieldLabel
-                          htmlFor="finalAmount"
-                          className="mt-auto flex-1"
-                        >
-                          Final Amount:
-                        </FieldLabel>
-                        <div id="finalAmount" className="w-fit">
-                          <MonetaryValue
-                            amountForSign={
+                            </div>
+                            {fieldState.invalid && (
+                              <FieldError errors={[fieldState.error]} />
+                            )}
+                          </Field>
+                        )}
+                      />
+                      <Separator className="opacity-50" />
+                      <div className="space-y-2">
+                        {[
+                          {
+                            name: "Current Amount",
+                            amount: targetMoney.amount,
+                            amountForSign: undefined,
+                          },
+                          {
+                            name: "Final Amount",
+                            amount:
+                              operation === "add"
+                                ? Number(amount ?? 0) +
+                                  Number(amountChange ?? 0)
+                                : Number(amount ?? 0) -
+                                  Number(amountChange ?? 0),
+                            amountForSign:
                               operation === "add"
                                 ? 0
                                 : Number(amount ?? 0) -
                                       Number(amountChange ?? 0) >=
                                     0
                                   ? 0
-                                  : -1
-                            }
-                            amount={
-                              operation === "add"
-                                ? Number(amount ?? 0) +
-                                  Number(amountChange ?? 0)
-                                : Number(amount ?? 0) -
-                                  Number(amountChange ?? 0)
-                            }
-                          />
-                        </div>
-                      </Field>
-                    </FieldGroup>
+                                  : -1,
+                          },
+                        ].map((item) => (
+                          <Item key={item.name} {...item} />
+                        ))}
+                      </div>
+                    </>
                   ) : null}
                 </div>
               </FieldSet>
@@ -637,5 +666,21 @@ export default function MoneyForm({
         </Field>
       </div>
     </form>
+  );
+}
+
+function Item(item: { name: string; amount: number; amountForSign?: number }) {
+  return (
+    <div key={item.name} className="flex flex-row gap-4 [&>*]:w-fit">
+      <span className="mt-auto flex-1 text-muted-foreground text-sm">
+        {item.name}:
+      </span>
+      <MonetaryValue
+        amount={item.amount}
+        amountForSign={item.amountForSign}
+        variant={"allBase"}
+        className={`${item.amountForSign === -1 ? "text-destructive" : ""}`}
+      />
+    </div>
   );
 }
