@@ -31,7 +31,6 @@ export default function MoneyCard({
   );
   return (
     <div
-      key={money.id}
       className={cn(
         "rounded-4xl flex bg-muted/75 dark:bg-muted/25 w-full p-6 justify-between relative overflow-hidden",
         className,
@@ -52,12 +51,12 @@ export default function MoneyCard({
         <MonetaryValue amount={money.amount ?? 0} />
         {oldMoney ? (
           <Badge
-            className={`ml-auto mr-0 ${money.operation === "add" ? "bg-green-500" : "bg-red-500"}`}
+            className={`ml-auto mr-0 ${oldMoney.amount - money.amount < 0 ? "bg-green-500" : "bg-red-500"}`}
           >
             <MonetaryValue
-              amount={money.amountChange ?? 0}
+              amount={oldMoney.amount - money.amount}
               variant={"allBase"}
-              amountForSign={money.operation === "add" ? 1 : -1}
+              amountForSign={oldMoney.amount - money.amount < 0 ? 1 : -1}
             />
           </Badge>
         ) : null}

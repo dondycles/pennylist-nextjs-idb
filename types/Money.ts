@@ -1,3 +1,4 @@
+import _ from "lodash";
 import z from "zod";
 
 // Base schema without transformations - can be extended
@@ -26,31 +27,63 @@ const moneyFormBaseSchema = z.object({
     .nonnegative("Amount must not be negative")
     .default(0)
     .optional(),
+  adjustmentType: z.enum(["manual", "addDeduct"]).default("manual").optional(),
   reason: z.string().optional(),
 });
 
 // Full schema with refinements and transformations
 export const moneyFormSchema = moneyFormBaseSchema
   .superRefine((data, ctx) => {
-    if (data.operation === "deduct" && (data.amountChange ?? 0) > data.amount) {
+    if (
+      data.adjustmentType === "manual" &&
+      Number(data.amountChange ?? 0) > 0
+    ) {
       ctx.addIssue({
         code: "custom",
-        message: "Amount change must not be zero.",
+        message: "Cannot adjust if manually set.",
+        path: ["amountChange"],
+      });
+    }
+    if (
+      data.adjustmentType === "addDeduct" &&
+      (data.amountChange === undefined || data.amountChange === 0)
+    ) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Amount change is required for adjustment.",
         path: ["amountChange"],
       });
     }
   })
   .transform((data) => {
     // Calculate final amount: amount + addAmount - removeAmount
-    const finalAmount =
-      data.operation === "add"
-        ? Number(data.amount ?? 0) + Number(data.amountChange ?? 0)
-        : Number(data.amount ?? 0) - Number(data.amountChange ?? 0);
+    if (data.adjustmentType === "addDeduct") {
+      const finalAmount =
+        data.operation === "add"
+          ? Number(data.amount ?? 0) + Number(data.amountChange ?? 0)
+          : Number(data.amount ?? 0) - Number(data.amountChange ?? 0);
 
-    return {
-      ...data,
-      amount: finalAmount,
-    };
+      return {
+        ...data,
+        amount: finalAmount,
+        amountChange: undefined,
+        adjustmentType: undefined,
+        reason: undefined,
+        operation: undefined,
+      };
+    }
+
+    if (data.adjustmentType === "manual") {
+      return {
+        ...data,
+        amountChange: undefined,
+        adjustmentType: undefined,
+        reason: undefined,
+        operation: undefined,
+      };
+    }
+
+    return data;
   });
 
 export type Money = z.infer<typeof moneyFormSchema>;
