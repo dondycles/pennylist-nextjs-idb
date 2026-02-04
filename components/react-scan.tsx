@@ -8,8 +8,7 @@ import { JSX, useEffect } from "react";
 export function ReactScan(): JSX.Element {
   useEffect(() => {
     scan({
-      enabled: true,
-      showToolbar: true,
+      enabled: process.env.NODE_ENV === "development",
     });
   }, []);
 
