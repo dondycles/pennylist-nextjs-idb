@@ -213,6 +213,17 @@ function Transfer() {
   const total_money = _.sum(moneys.map((money) => Number(money.amount)));
   const date = new Date().toISOString();
 
+  // Keys that belong to BasicMoney schema
+  const basicMoneyKeys = [
+    "id",
+    "name",
+    "amount",
+    "fintech",
+    "tags",
+    "date_added",
+    "date_edited",
+  ] as const;
+
   const reset = () => {
     setMoneyInActionForEditOrRemove(undefined);
     setMoneyInActionNewDataForEditOrRemove(undefined);
@@ -237,12 +248,14 @@ function Transfer() {
                 ...senderMoney,
                 amount:
                   Number(senderMoney.amount) - Number(senderMoney.demands),
+                date_edited: date,
               };
               edit(updatedSender);
               receiverMoneys.forEach((receiver) => {
                 const updatedReceiver = {
                   ...receiver,
                   amount: Number(receiver.amount) + Number(receiver.demand),
+                  date_edited: date,
                 };
                 edit(updatedReceiver);
               });
@@ -254,8 +267,8 @@ function Transfer() {
                   {
                     money_id: senderMoney.id,
                     snapshot: {
-                      before: senderMoney,
-                      after: updatedSender,
+                      before: _.pick(senderMoney, basicMoneyKeys),
+                      after: _.pick(updatedSender, basicMoneyKeys),
                     },
                   },
                   ...receiverMoneys.map((receiver) => {
@@ -267,8 +280,8 @@ function Transfer() {
                     return {
                       money_id: receiver.id,
                       snapshot: {
-                        before: receiver,
-                        after: updatedReceiver,
+                        before: _.pick(receiver, basicMoneyKeys),
+                        after: _.pick(updatedReceiver, basicMoneyKeys),
                       },
                       reason: receiver.reason,
                     };
