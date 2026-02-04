@@ -12,7 +12,13 @@ import {
 import { Command as CommandPrimitive } from "cmdk";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Controller, useFieldArray, useForm, useWatch } from "react-hook-form";
+import {
+  Controller,
+  useFieldArray,
+  useForm,
+  useFormState,
+  useWatch,
+} from "react-hook-form";
 import * as z from "zod";
 import { Plus, X } from "lucide-react";
 import {
@@ -25,7 +31,11 @@ import {
 } from "@/components/ui/command";
 import { cn } from "@/lib/utils";
 
-import { MoneyTransfer, moneyTransferFormSchema } from "@/types/Money";
+import {
+  BasicMoney,
+  MoneyTransfer,
+  moneyTransferFormSchema,
+} from "@/types/Money";
 import { useMoneysStore } from "@/store/Moneys";
 import { FINTECHS } from "@/lib/contants";
 import MoneyTransferCardWForm from "@/components/money-transfer-card-w-form";
@@ -33,7 +43,7 @@ import BottomDrawer from "./bottom-drawer";
 import Image from "next/image";
 import { Separator } from "./ui/separator";
 import { Textarea } from "./ui/textarea";
-import { useEffect } from "react";
+import { memo, useCallback, useEffect, forwardRef, useState } from "react";
 import _ from "lodash";
 import { toast } from "sonner";
 import { useActionConfirmStore } from "@/store/ActionConfirm";
@@ -41,12 +51,332 @@ import InpuntWithCurrency from "./input-w-currency";
 import MonetaryValue from "./monetary-value";
 import Checker from "./checker";
 
-export default function TransferMoneyForm() {
-  const { moneys } = useMoneysStore();
-  const { setOpenDialog, setMoneysInActionForTransfer, setTypeOfAction } =
-    useActionConfirmStore();
+// Move constant outside component to prevent recreation
+const COMMAND_ITEM_CLASSNAME = "border rounded-4xl p-0 overflow-hidden";
 
-  const COMMAND_ITEM_CLASSNAME = "border rounded-4xl p-0 overflow-hidden";
+// Type for form control
+type TransferFormControl = ReturnType<
+  typeof useForm<z.infer<typeof moneyTransferFormSchema>>
+>["control"];
+
+// Memoized Cell component
+const Cell = memo(function Cell({
+  m,
+  checked,
+}: {
+  m: MoneyTransfer["receiverMoneys"][number];
+  checked: boolean;
+}) {
+  return (
+    <div className="w-full h-full p-4 z-0 relative overflow-hidden flex flex-col">
+      <p className="z-2 break-all line-clamp-2 text-muted-foreground text-base font-black">
+        <span>{m.name}</span>
+        {m.tags?.map((tag, i) => (
+          <span
+            className="text-foreground/25"
+            key={`${m.name}-#${tag.tag}-${i}`}
+          >
+            {" "}
+            #{tag.tag.toLowerCase()}
+          </span>
+        ))}
+      </p>
+      <MonetaryValue amount={m.amount ?? 0} />
+      <Checker checked={checked} />
+      <div className="absolute -z-20 top-0 left-0 h-full w-full bg-linear-to-b from-background to-transparent"></div>
+      {m.fintech ? (
+        <Image
+          src={FINTECHS.find((f) => f.value === m.fintech)!.bg}
+          className="m-auto -z-10  absolute object-center h-4 w-auto max-w-16 object-contain bottom-4 left-1/2 -translate-x-1/2"
+          alt={m.fintech}
+        />
+      ) : null}
+    </div>
+  );
+});
+
+// Memoized CellsWrapper component
+const CellsWrapper = memo(function CellsWrapper({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="grid grid-cols-1  mmxs:grid-cols-2 gap-2 max-w-lg mx-auto">
+      {children}
+    </div>
+  );
+});
+
+// Memoized ModifiedCommand component
+const ModifiedCommand = memo(function ModifiedCommand({
+  children,
+  ...props
+}: React.ComponentProps<typeof CommandPrimitive>) {
+  return (
+    <Command
+      className="bg-transparent rounded-4xl **:data-[slot='command-input-wrapper']:max-w-lg **:data-[slot='command-input-wrapper']:w-full **:data-[slot='command-input-wrapper']:mx-auto"
+      {...props}
+    >
+      {children}
+    </Command>
+  );
+});
+
+// Isolated component for form actions that subscribes to isValid
+const FormActions = memo(function FormActions({
+  control,
+  onReset,
+}: {
+  control: TransferFormControl;
+  onReset: () => void;
+}) {
+  const { isValid } = useFormState({ control });
+
+  return (
+    <div className="bg-background/50 backdrop-blur-2xl border-t w-full fixed bottom-0 left-1/2 -translate-x-1/2 ">
+      <Field
+        orientation="horizontal"
+        className="gap-2 max-w-lg w-full mx-auto justify-end p-4 "
+      >
+        <Button
+          disabled={!isValid}
+          type="button"
+          variant="secondary"
+          onClick={onReset}
+        >
+          Reset
+        </Button>
+        <Button disabled={!isValid} type="submit" form="transfer-money-form">
+          Transfer
+        </Button>
+      </Field>
+    </div>
+  );
+});
+
+// Isolated component for sender money remaining value display
+const SenderMoneyValue = memo(function SenderMoneyValue({
+  control,
+}: {
+  control: TransferFormControl;
+}) {
+  const amount = useWatch({ control, name: "senderMoney.amount" });
+  const demands = useWatch({ control, name: "senderMoney.demands" });
+
+  const remaining = Number(amount ?? 0) - Number(demands ?? 0);
+  const amountForSign = Number(amount ?? 0) < Number(demands ?? 0) ? -1 : 0;
+
+  return <MonetaryValue amount={remaining} amountForSign={amountForSign} />;
+});
+
+// Isolated component for receiver money value display
+const ReceiverMoneyValue = memo(function ReceiverMoneyValue({
+  control,
+  index,
+}: {
+  control: TransferFormControl;
+  index: number;
+}) {
+  const amount = useWatch({ control, name: `receiverMoneys.${index}.amount` });
+  const demand = useWatch({ control, name: `receiverMoneys.${index}.demand` });
+
+  const total = Number(amount ?? 0) + Number(demand ?? 0);
+
+  return <MonetaryValue amount={total} amountForSign={0} />;
+});
+
+// Isolated component that calculates total demands without causing parent re-renders
+const DemandsCalculator = memo(function DemandsCalculator({
+  control,
+  moneys,
+  form,
+}: {
+  control: TransferFormControl;
+  moneys: BasicMoney[];
+  form: ReturnType<typeof useForm<z.infer<typeof moneyTransferFormSchema>>>;
+}) {
+  const receivers = useWatch({ control, name: "receiverMoneys" });
+  const receiverDemands = useWatch({ control, name: "senderMoney.demands" });
+
+  useEffect(() => {
+    const totalDemands = _.sumBy(receivers, (rm) => Number(rm.demand || 0));
+    const totalFees = _.sumBy(receivers, (rm) => Number(rm.fee || 0));
+    const totalAmount = totalDemands + totalFees;
+
+    form.setValue("senderMoney.demands", totalAmount);
+  }, [form, receivers]);
+
+  useEffect(() => {
+    const senderMoney = moneys.find(
+      (m) => m.id === form.getValues("senderMoney")?.id,
+    );
+    if (receiverDemands > (senderMoney?.amount ?? 0)) {
+      form.setError("senderMoney.demands", {
+        message: `Total demand (${receiverDemands}) exceeds sender balance (${senderMoney?.amount})`,
+      });
+    } else {
+      form?.clearErrors("senderMoney.demands");
+    }
+  }, [form, moneys, receiverDemands]);
+
+  return null; // This component only handles side effects
+});
+
+// Memoized Receiver Card to prevent re-renders of other cards when typing
+const ReceiverCard = memo(function ReceiverCard({
+  money,
+  index,
+  control,
+  onRemove,
+}: {
+  money: MoneyTransfer["receiverMoneys"][number];
+  index: number;
+  control: TransferFormControl;
+  onRemove: () => void;
+}) {
+  return (
+    <MoneyTransferCardWForm money={money}>
+      <>
+        <div className="flex justify-between">
+          <div className="grid">
+            <span className="font-black text-muted-foreground truncate">
+              <span>{money.name}</span>
+              {money.tags?.map((tag, i) => (
+                <span
+                  className="text-foreground/25"
+                  key={`${money.name}-#${tag.tag}-${i}`}
+                >
+                  #{tag.tag.toLowerCase()}{" "}
+                </span>
+              ))}
+            </span>
+            <ReceiverMoneyValue control={control} index={index} />
+          </div>
+          <Button
+            size={"icon"}
+            className="size-fit p-2 z-2 text-muted-foreground"
+            variant={"ghost"}
+            onClick={onRemove}
+          >
+            <X />
+          </Button>
+        </div>
+        <Separator className="my-4" />
+        <FieldGroup>
+          <Controller
+            name={`receiverMoneys.${index}.demand`}
+            control={control}
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor={field.name}>Amount to receive</FieldLabel>
+                <InpuntWithCurrency
+                  aria-invalid={fieldState.invalid}
+                  amountForSign={1}
+                  {...field}
+                />
+                {fieldState.invalid && (
+                  <FieldError errors={[fieldState.error]} />
+                )}
+              </Field>
+            )}
+          />
+          <Controller
+            name={`receiverMoneys.${index}.fee`}
+            control={control}
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor={field.name}>Fee</FieldLabel>
+                <InpuntWithCurrency
+                  aria-invalid={fieldState.invalid}
+                  amountForSign={0}
+                  {...field}
+                />
+                {fieldState.invalid && (
+                  <FieldError errors={[fieldState.error]} />
+                )}
+              </Field>
+            )}
+          />
+          <Controller
+            name={`receiverMoneys.${index}.reason`}
+            control={control}
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor={field.name}>Reason (Optional)</FieldLabel>
+                <Textarea
+                  {...field}
+                  aria-invalid={fieldState.invalid}
+                  id={field.name}
+                />
+                {fieldState.invalid && (
+                  <FieldError errors={[fieldState.error]} />
+                )}
+              </Field>
+            )}
+          />
+        </FieldGroup>
+      </>
+    </MoneyTransferCardWForm>
+  );
+});
+
+// Isolated component for the receiver select button that watches senderMoney
+const ReceiverSelectButton = memo(
+  forwardRef<
+    HTMLButtonElement,
+    {
+      control: TransferFormControl;
+      fieldName: string;
+      hasReceivers: boolean;
+    } & React.ComponentPropsWithoutRef<typeof Button>
+  >(function ReceiverSelectButton(
+    { control, fieldName, hasReceivers, onClick, ...props },
+    ref,
+  ) {
+    const senderMoney = useWatch({ control, name: "senderMoney" });
+    const isDisabled = !senderMoney?.id;
+
+    const handleClick = useCallback(
+      (e: React.MouseEvent<HTMLButtonElement>) => {
+        if (isDisabled) {
+          e.preventDefault();
+          e.stopPropagation();
+          return;
+        }
+        onClick?.(e);
+      },
+      [isDisabled, onClick],
+    );
+
+    return (
+      <Button
+        ref={ref}
+        id={fieldName}
+        variant="secondary"
+        role="combobox"
+        size="icon"
+        className={cn(!hasReceivers && "text-muted-foreground")}
+        onClick={handleClick}
+        {...props}
+        disabled={isDisabled}
+      >
+        <Plus />
+      </Button>
+    );
+  }),
+);
+
+export default function TransferMoneyForm() {
+  // Use selective zustand selectors
+  const moneys = useMoneysStore((state) => state.moneys);
+  const setOpenDialog = useActionConfirmStore((state) => state.setOpenDialog);
+  const setMoneysInActionForTransfer = useActionConfirmStore(
+    (state) => state.setMoneysInActionForTransfer,
+  );
+  const setTypeOfAction = useActionConfirmStore(
+    (state) => state.setTypeOfAction,
+  );
 
   const form = useForm<z.infer<typeof moneyTransferFormSchema>>({
     resolver: zodResolver(moneyTransferFormSchema),
@@ -65,78 +395,123 @@ export default function TransferMoneyForm() {
     },
   );
 
-  function onSubmit(transferData: z.infer<typeof moneyTransferFormSchema>) {
-    const fees = transferData.receiverMoneys.reduce(
-      (acc, rm) => acc + Number(rm.fee ?? 0),
-      0,
-    );
-    const demands = transferData.receiverMoneys.reduce(
-      (acc, rm) => acc + Number(rm.demand ?? 0),
-      0,
-    );
-    const totalAmount = demands + fees;
+  // Memoize handlers
+  const handleReset = useCallback(() => {
+    form.reset();
+    form.setValue("receiverMoneys", undefined as unknown as []);
+  }, [form]);
 
-    console.log(totalAmount, transferData.senderMoney.demands);
+  const handleRemoveReceiver = useCallback(
+    (index: number) => {
+      removeMoneyReceiver(index);
+    },
+    [removeMoneyReceiver],
+  );
 
-    if (totalAmount !== transferData.senderMoney.demands) {
-      form.setError("senderMoney.demands", {
-        message: "Demands do not match",
+  // Factory for creating stable remove callbacks per index
+  const createRemoveHandler = useCallback(
+    (index: number) => () => handleRemoveReceiver(index),
+    [handleRemoveReceiver],
+  );
+
+  const onSubmit = useCallback(
+    (transferData: z.infer<typeof moneyTransferFormSchema>) => {
+      const fees = transferData.receiverMoneys.reduce(
+        (acc, rm) => acc + Number(rm.fee ?? 0),
+        0,
+      );
+      const demands = transferData.receiverMoneys.reduce(
+        (acc, rm) => acc + Number(rm.demand ?? 0),
+        0,
+      );
+      const totalAmount = demands + fees;
+
+      console.log(totalAmount, transferData.senderMoney.demands);
+
+      if (totalAmount !== transferData.senderMoney.demands) {
+        form.setError("senderMoney.demands", {
+          message: "Demands do not match",
+        });
+        toast.error("Demands do not match");
+        return;
+      }
+      setMoneysInActionForTransfer(transferData);
+      setTypeOfAction("transferMoney");
+      setOpenDialog(true);
+    },
+    [form, setMoneysInActionForTransfer, setTypeOfAction, setOpenDialog],
+  );
+
+  // Create sender select handler factory
+  const createSenderSelectHandler = useCallback(
+    (m: (typeof moneys)[number]) => () => {
+      form.setValue("senderMoney", {
+        ...m,
+        node: "sender",
+        demands: undefined as unknown as number,
       });
-      toast.error("Demands do not match");
-      return;
-    }
-    setMoneysInActionForTransfer(transferData);
-    setTypeOfAction("transferMoney");
-    setOpenDialog(true);
-    // toast(<pre>{JSON.stringify(transferData, null, 2)}</pre>)
-  }
+      form.setValue("receiverMoneys", []);
+    },
+    [form],
+  );
 
-  const receivers = useWatch({
+  // Create receiver select handler factory
+  const createReceiverSelectHandler = useCallback(
+    (
+      m: (typeof moneys)[number],
+      currentReceivers: MoneyTransfer["receiverMoneys"] | undefined,
+    ) =>
+      () => {
+        if (currentReceivers?.find((rm) => rm.id === m.id)) {
+          form.setValue("receiverMoneys", [
+            ...currentReceivers.filter((rm) => rm.id !== m.id),
+          ]);
+        } else {
+          form.setValue(
+            "receiverMoneys",
+            currentReceivers
+              ? [
+                  ...currentReceivers,
+                  {
+                    ...m,
+                    node: "receiver",
+                    demand: undefined as unknown as number,
+                    reason: "",
+                    fee: undefined as unknown as number,
+                  },
+                ]
+              : [
+                  {
+                    ...m,
+                    node: "receiver",
+                    demand: undefined as unknown as number,
+                    reason: "",
+                    fee: undefined as unknown as number,
+                  },
+                ],
+          );
+        }
+      },
+    [form],
+  );
+
+  const senderMoneyId = useWatch({
     control: form.control,
-    name: "receiverMoneys",
+    name: "senderMoney.id",
   });
 
-  const receiverDemands = useWatch({
-    control: form.control,
-    name: "senderMoney.demands",
-  });
-
-  // useEffect(() => {
-  //   // 2. Use a simple loop or _.sumBy for readability/speed
-  //   const totalDemands = _.sumBy(receiverMoneys, (rm) => Number(rm.amountToReceive || 0));
-
-  //   if (totalDemands > (senderAmount || 0)) {
-  //     form.setError("receiverMoneys", {
-  //       message: `Total demand (${totalDemands}) exceeds sender balance (${senderAmount})`,
-  //       type: "manual", // Changed to manual for custom logic
-  //     });
-  //   } else {
-  //     form.clearErrors("receiverMoneys");
-  //   }
-
-  //   // 3. Clean dependencies: React can track these simple variables easily
-  // }, [receiverMoneys, senderAmount, form]);
-
-  useEffect(() => {
-    const senderMoney = moneys.find(
-      (m) => m.id === form.getValues("senderMoney")?.id,
-    );
-    if (receiverDemands > (senderMoney?.amount ?? 0)) {
-      form.setError("senderMoney.demands", {
-        message: `Total demand (${receiverDemands}) exceeds sender balance (${senderMoney?.amount})`,
-      });
-    } else {
-      form?.clearErrors("senderMoney.demands");
-    }
-  }, [form, moneys, receiverDemands]);
-
-  useEffect(() => {
-    const totalDemands = _.sumBy(receivers, (rm) => Number(rm.demand || 0));
-    const totalFees = _.sumBy(receivers, (rm) => Number(rm.fee || 0));
-    const totalAmount = totalDemands + totalFees;
-
-    form.setValue("senderMoney.demands", totalAmount);
-  }, [form, receivers]);
+  // Controlled state for receiver drawer - only opens when sender is selected
+  const [receiverDrawerOpen, setReceiverDrawerOpen] = useState(false);
+  const handleReceiverDrawerOpenChange = useCallback(
+    (open: boolean) => {
+      // Only allow opening if sender money is selected
+      if (open && !senderMoneyId) {
+        return;
+      }
+      setReceiverDrawerOpen(open);
+    },
+    [senderMoneyId],
+  );
 
   return (
     <form
@@ -144,6 +519,8 @@ export default function TransferMoneyForm() {
       onSubmit={form.handleSubmit(onSubmit)}
       className="w-full px-4 pb-24 flex flex-col items-center overflow-auto"
     >
+      {/* Isolated component for demands calculation - doesn't cause parent re-renders */}
+      <DemandsCalculator control={form.control} moneys={moneys} form={form} />
       <FieldGroup className="h-full max-w-lg">
         <Controller
           name="senderMoney"
@@ -187,14 +564,7 @@ export default function TransferMoneyForm() {
                               <CommandItem
                                 value={`${m.name}-${i}`}
                                 key={m.id}
-                                onSelect={() => {
-                                  form.setValue("senderMoney", {
-                                    ...m,
-                                    node: "sender",
-                                    demands: undefined as unknown as number,
-                                  });
-                                  form.setValue("receiverMoneys", []);
-                                }}
+                                onSelect={createSenderSelectHandler(m)}
                                 className={COMMAND_ITEM_CLASSNAME}
                                 style={{
                                   background: FINTECHS.find(
@@ -236,18 +606,7 @@ export default function TransferMoneyForm() {
                         </span>
                       ))}
                     </span>
-                    <MonetaryValue
-                      amount={
-                        Number(form.getValues("senderMoney.amount") ?? 0) -
-                        Number(form.getValues("senderMoney.demands") ?? 0)
-                      }
-                      amountForSign={
-                        Number(form.getValues("senderMoney.amount") ?? 0) <
-                        Number(form.getValues("senderMoney.demands") ?? 0)
-                          ? -1
-                          : 0
-                      }
-                    />
+                    <SenderMoneyValue control={form.control} />
 
                     <Separator className="my-2" />
                     <Controller
@@ -288,30 +647,28 @@ export default function TransferMoneyForm() {
           control={form.control}
           render={({ field, fieldState }) => (
             <FieldSet className="gap-3">
-              <Field orientation="horizontal" data-invalid={fieldState.invalid}>
+              <Field
+                orientation="horizontal"
+                data-invalid={fieldState.isTouched && fieldState.invalid}
+              >
                 <FieldContent>
                   <FieldLabel htmlFor={field.name}>Receiver Moneys</FieldLabel>
                   <FieldDescription>
                     Please select moneys to transfer to.
                   </FieldDescription>
-                  {fieldState.invalid && (
+                  {fieldState.isTouched && fieldState.invalid && (
                     <FieldError errors={[fieldState.error]} />
                   )}
                 </FieldContent>
                 <BottomDrawer
+                  open={receiverDrawerOpen}
+                  onOpenChange={handleReceiverDrawerOpenChange}
                   trigger={
-                    <Button
-                      disabled={form.watch("senderMoney") === undefined}
-                      id={field.name}
-                      variant="secondary"
-                      role="combobox"
-                      size="icon"
-                      className={cn(
-                        !field.value.length && "text-muted-foreground",
-                      )}
-                    >
-                      <Plus />
-                    </Button>
+                    <ReceiverSelectButton
+                      control={form.control}
+                      fieldName={field.name}
+                      hasReceivers={field.value.length > 0}
+                    />
                   }
                   title="Select Receiver Moneys"
                   desc="This are the moneys that will receive from the sender."
@@ -323,53 +680,15 @@ export default function TransferMoneyForm() {
                         <CommandGroup className="max-h-full ">
                           <CellsWrapper>
                             {moneys
-                              .filter(
-                                (m) => m.id !== form.watch("senderMoney")?.id,
-                              )
+                              .filter((m) => m.id !== senderMoneyId)
                               .map((m, i) => (
                                 <CommandItem
                                   value={`${m.name}-${i}`}
                                   key={m.id}
-                                  onSelect={() => {
-                                    if (
-                                      field.value?.find((rm) => rm.id === m.id)
-                                    ) {
-                                      form.setValue("receiverMoneys", [
-                                        ...field.value.filter(
-                                          (rm) => rm.id !== m.id,
-                                        ),
-                                      ]);
-                                    } else {
-                                      form.setValue(
-                                        "receiverMoneys",
-                                        field.value
-                                          ? [
-                                              ...field.value,
-                                              {
-                                                ...m,
-                                                node: "receiver",
-                                                demand:
-                                                  undefined as unknown as number,
-                                                reason: "",
-                                                fee: undefined as unknown as number,
-                                              },
-                                            ]
-                                          : [
-                                              {
-                                                ...m,
-                                                node: "receiver",
-                                                demand:
-                                                  undefined as unknown as number,
-                                                reason: "",
-                                                fee: undefined as unknown as number,
-                                              },
-                                            ],
-                                      );
-                                    }
-
-                                    // form.setValue("senderMoney", m);
-                                    // setOpenSelectFintech(false);
-                                  }}
+                                  onSelect={createReceiverSelectHandler(
+                                    m,
+                                    field.value,
+                                  )}
                                   className={COMMAND_ITEM_CLASSNAME}
                                   style={{
                                     background: FINTECHS.find(
@@ -400,206 +719,19 @@ export default function TransferMoneyForm() {
               </Field>
 
               {moneyReceivers?.map((money, index) => (
-                <Controller
+                <ReceiverCard
                   key={money.id}
-                  name={`receiverMoneys.${index}`}
+                  money={money}
+                  index={index}
                   control={form.control}
-                  render={() => (
-                    <MoneyTransferCardWForm key={money.id} money={money}>
-                      <>
-                        <div className="flex justify-between">
-                          <div className="grid">
-                            <span className="font-black text-muted-foreground truncate">
-                              <span>{money.name}</span>
-                              {money.tags?.map((tag, i) => (
-                                <span
-                                  className="text-foreground/25"
-                                  key={`${money.name}-#${tag.tag}-${i}`}
-                                >
-                                  #{tag.tag.toLowerCase()}{" "}
-                                </span>
-                              ))}
-                            </span>
-                            <MonetaryValue
-                              amount={
-                                Number(
-                                  form.watch(
-                                    `receiverMoneys.${index}.amount`,
-                                  ) ?? 0,
-                                ) +
-                                Number(
-                                  form.watch(
-                                    `receiverMoneys.${index}.demand`,
-                                  ) ?? 0,
-                                )
-                              }
-                              amountForSign={0}
-                            />
-                          </div>
-                          <Button
-                            size={"icon"}
-                            className="size-fit p-2 z-2 text-muted-foreground"
-                            variant={"ghost"}
-                            onClick={() => {
-                              removeMoneyReceiver(index);
-                            }}
-                          >
-                            <X />
-                          </Button>
-                        </div>
-                        <Separator className="my-4" />
-                        <FieldGroup>
-                          <Controller
-                            name={`receiverMoneys.${index}.demand`}
-                            control={form.control}
-                            render={({ field, fieldState }) => (
-                              <Field data-invalid={fieldState.invalid}>
-                                <FieldLabel htmlFor={field.name}>
-                                  Amount to receive
-                                </FieldLabel>
-                                <InpuntWithCurrency
-                                  aria-invalid={fieldState.invalid}
-                                  amountForSign={1}
-                                  {...field}
-                                />
-                                {fieldState.invalid && (
-                                  <FieldError errors={[fieldState.error]} />
-                                )}
-                              </Field>
-                            )}
-                          />
-                          <Controller
-                            name={`receiverMoneys.${index}.fee`}
-                            control={form.control}
-                            render={({ field, fieldState }) => (
-                              <Field data-invalid={fieldState.invalid}>
-                                <FieldLabel htmlFor={field.name}>
-                                  Fee
-                                </FieldLabel>
-                                <InpuntWithCurrency
-                                  aria-invalid={fieldState.invalid}
-                                  amountForSign={0}
-                                  {...field}
-                                />
-                                {fieldState.invalid && (
-                                  <FieldError errors={[fieldState.error]} />
-                                )}
-                              </Field>
-                            )}
-                          />
-                          <Controller
-                            name={`receiverMoneys.${index}.reason`}
-                            control={form.control}
-                            render={({ field, fieldState }) => (
-                              <Field data-invalid={fieldState.invalid}>
-                                <FieldLabel htmlFor={field.name}>
-                                  Reason (Optional)
-                                </FieldLabel>
-                                <Textarea
-                                  {...field}
-                                  aria-invalid={fieldState.invalid}
-                                  id={field.name}
-                                />
-                                {fieldState.invalid && (
-                                  <FieldError errors={[fieldState.error]} />
-                                )}
-                              </Field>
-                            )}
-                          />
-                        </FieldGroup>
-                      </>
-                    </MoneyTransferCardWForm>
-                  )}
+                  onRemove={createRemoveHandler(index)}
                 />
               ))}
             </FieldSet>
           )}
         />
       </FieldGroup>
-      <div className="bg-background/50 backdrop-blur-2xl border-t w-full fixed bottom-0 left-1/2 -translate-x-1/2 ">
-        <Field
-          orientation="horizontal"
-          className="gap-2 max-w-lg w-full mx-auto justify-end p-4 "
-        >
-          <Button
-            disabled={!form.formState.isValid}
-            type="button"
-            variant="secondary"
-            onClick={() => {
-              form.reset();
-              form.setValue("receiverMoneys", undefined as unknown as []);
-              // if (action === "add")
-              //   form.setValue("amount", "" as unknown as number);
-            }}
-          >
-            Reset
-          </Button>
-          <Button
-            disabled={!form.formState.isValid}
-            type="submit"
-            form="transfer-money-form"
-          >
-            Transfer
-          </Button>
-        </Field>
-      </div>
+      <FormActions control={form.control} onReset={handleReset} />
     </form>
-  );
-}
-
-function Cell({
-  m,
-  checked,
-}: {
-  m: MoneyTransfer["receiverMoneys"][number];
-  checked: boolean;
-}) {
-  return (
-    <div className="w-full h-full p-4 z-0 relative overflow-hidden flex flex-col">
-      <p className="z-2 break-all line-clamp-2 text-muted-foreground text-base font-black">
-        <span>{m.name}</span>
-        {m.tags?.map((tag, i) => (
-          <span
-            className="text-foreground/25"
-            key={`${m.name}-#${tag.tag}-${i}`}
-          >
-            {" "}
-            #{tag.tag.toLowerCase()}
-          </span>
-        ))}
-      </p>
-      <MonetaryValue amount={m.amount ?? 0} />
-      <Checker checked={checked} />
-      <div className="absolute -z-20 top-0 left-0 h-full w-full bg-linear-to-b from-background to-transparent"></div>
-      {m.fintech ? (
-        <Image
-          src={FINTECHS.find((f) => f.value === m.fintech)!.bg}
-          className="m-auto -z-10  absolute object-center h-4 w-auto max-w-16 object-contain bottom-4 left-1/2 -translate-x-1/2"
-          alt={m.fintech}
-        />
-      ) : null}
-    </div>
-  );
-}
-
-function CellsWrapper({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="grid grid-cols-1  mmxs:grid-cols-2 gap-2 max-w-lg mx-auto">
-      {children}
-    </div>
-  );
-}
-
-function ModifiedCommand({
-  children,
-  ...props
-}: React.ComponentProps<typeof CommandPrimitive>) {
-  return (
-    <Command
-      className="bg-transparent rounded-4xl **:data-[slot='command-input-wrapper']:max-w-lg **:data-[slot='command-input-wrapper']:w-full **:data-[slot='command-input-wrapper']:mx-auto"
-      {...props}
-    >
-      {children}
-    </Command>
   );
 }

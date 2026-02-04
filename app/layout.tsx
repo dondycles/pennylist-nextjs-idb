@@ -8,6 +8,7 @@ import ActionAlertDialog from "@/components/action-alert-dialog";
 import { SerwistProvider } from "@/providers/serwist";
 import { TouchProvider } from "@/components/ui/hybrid-tooltip";
 import "./globals.css";
+import { ReactScan } from "@/components/react-scan";
 
 const gilroy = localFont({
   src: [
@@ -84,6 +85,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <ReactScan />
       <body className={`${gilroy.className} antialiased`}>
         <SerwistProvider swUrl="/serwist/sw.js">
           <ThemeProvider

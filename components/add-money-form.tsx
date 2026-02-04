@@ -12,7 +12,13 @@ import {
 import { Input } from "@/components/ui/input";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Controller, useFieldArray, useForm } from "react-hook-form";
+import {
+  Controller,
+  useFieldArray,
+  useForm,
+  useFormState,
+  useWatch,
+} from "react-hook-form";
 import * as z from "zod";
 import { ChevronsUpDown, XIcon } from "lucide-react";
 import {
@@ -40,15 +46,115 @@ import _ from "lodash";
 import BottomDrawer from "./bottom-drawer";
 import Image from "next/image";
 import InpuntWithCurrency from "./input-w-currency";
-import MonetaryValue from "./monetary-value";
 
 import Checker from "./checker";
-import { useState } from "react";
+import { memo, useCallback, useMemo, useState } from "react";
+
+// Memoized fintech item to prevent re-renders when other items change
+const FintechItem = memo(function FintechItem({
+  fintech,
+  isSelected,
+  onSelect,
+}: {
+  fintech: (typeof FINTECHS)[number];
+  isSelected: boolean;
+  onSelect: () => void;
+}) {
+  return (
+    <CommandItem
+      aria-checked={isSelected}
+      data-checked={isSelected}
+      value={fintech.label}
+      onSelect={onSelect}
+      className="aspect-square border rounded-4xl p-0 overflow-hidden"
+      style={{ background: fintech.color }}
+    >
+      <div className="w-full h-full relative p-4 z-0 flex">
+        <Checker checked={isSelected} />
+        <Image
+          src={fintech.bg}
+          className="m-auto -z-10 pointer-events-none"
+          alt={fintech.label}
+        />
+      </div>
+    </CommandItem>
+  );
+});
+
+// Isolated component for form actions that subscribes to isValid
+const FormActions = memo(function FormActions({
+  control,
+  onReset,
+}: {
+  control: ReturnType<
+    typeof useForm<z.infer<typeof moneyBasicSchema>>
+  >["control"];
+  onReset: () => void;
+}) {
+  const { isValid } = useFormState({ control });
+
+  return (
+    <div className="bg-background/50 backdrop-blur-2xl border-t w-full fixed bottom-0 left-1/2 -translate-x-1/2 ">
+      <Field
+        orientation="horizontal"
+        className="gap-2 max-w-lg w-full mx-auto justify-end p-4 "
+      >
+        <Button
+          disabled={!isValid}
+          type="button"
+          variant="secondary"
+          onClick={onReset}
+        >
+          Reset
+        </Button>
+        <Button
+          disabled={!isValid}
+          className="capitalize"
+          type="submit"
+          form="money-form"
+        >
+          Add
+        </Button>
+      </Field>
+    </div>
+  );
+});
+
+// Isolated component for tags that watches tags array
+const TagsResetButton = memo(function TagsResetButton({
+  control,
+  onReset,
+}: {
+  control: ReturnType<
+    typeof useForm<z.infer<typeof moneyBasicSchema>>
+  >["control"];
+  onReset: () => void;
+}) {
+  const tags = useWatch({ control, name: "tags" });
+
+  if (!tags?.length) return null;
+
+  return (
+    <Button
+      type="button"
+      variant="destructive"
+      onClick={onReset}
+      className="py-0 px-3 text-sm font-bold"
+    >
+      Reset Tags
+    </Button>
+  );
+});
+
 export default function AddMoneyForm() {
-  const date = new Date().toISOString();
+  // Memoize the date so it doesn't change on re-renders
+  const date = useMemo(() => new Date().toISOString(), []);
   const router = useRouter();
-  const { add, moneys } = useMoneysStore();
-  const { addHistory } = useHistoryStore();
+
+  // Only subscribe to the functions we need, not the moneys array
+  const addMoney = useMoneysStore((state) => state.add);
+  const getMoneys = useMoneysStore((state) => state.moneys);
+  const addHistory = useHistoryStore((state) => state.addHistory);
 
   const form = useForm<z.infer<typeof moneyBasicSchema>>({
     resolver: zodResolver(moneyBasicSchema),
@@ -76,33 +182,66 @@ export default function AddMoneyForm() {
     name: "tags",
   });
 
-  function onSubmit(money: z.infer<typeof moneyIntricateSchema>) {
-    addMoney(money);
-  }
+  // Memoize handlers to prevent re-renders
+  const handleAddTag = useCallback(() => {
+    appendTag({ tag: "" });
+  }, [appendTag]);
 
-  function addMoney(money: z.infer<typeof moneyIntricateSchema>) {
-    const total_money = _.sum(moneys.map((money) => Number(money.amount)));
-    add(money);
-    addHistory({
-      id: nanoid(),
-      date_added: date,
-      type: "add",
-      transfer_history: null,
-      edit_or_remove_history: [
-        {
-          money_id: money.id,
-          snapshot: {
-            after: form.getValues(),
+  const handleResetTags = useCallback(() => {
+    form.resetField("tags");
+  }, [form]);
+
+  const handleReset = useCallback(() => {
+    form.reset();
+    form.setValue("amount", "" as unknown as number);
+  }, [form]);
+
+  const handleRemoveTag = useCallback(
+    (index: number) => {
+      removeTag(index);
+    },
+    [removeTag],
+  );
+
+  const onSubmit = useCallback(
+    (money: z.infer<typeof moneyIntricateSchema>) => {
+      // Get moneys at submission time, not reactively
+      const total_money = _.sum(getMoneys.map((m) => Number(m.amount)));
+      addMoney(money);
+      addHistory({
+        id: nanoid(),
+        date_added: date,
+        type: "add",
+        transfer_history: null,
+        edit_or_remove_history: [
+          {
+            money_id: money.id,
+            snapshot: {
+              after: form.getValues(),
+            },
           },
+        ],
+        total_money: {
+          before: total_money,
+          after: Number(total_money) + Number(form.getValues("amount")),
         },
-      ],
-      total_money: {
-        before: total_money,
-        after: Number(total_money) + Number(form.getValues("amount")),
-      },
-    });
-    router.push("/list");
-  }
+      });
+      router.push("/list");
+    },
+    [addMoney, addHistory, date, form, getMoneys, router],
+  );
+
+  // Memoize the fintech select handler factory
+  const createFintechSelectHandler = useCallback(
+    (fintechValue: string) => () => {
+      const currentValue = form.getValues("fintech");
+      form.setValue(
+        "fintech",
+        fintechValue === currentValue ? "" : fintechValue,
+      );
+    },
+    [form],
+  );
 
   return (
     <form
@@ -190,42 +329,14 @@ export default function AddMoneyForm() {
                       <CommandGroup>
                         <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 gap-2 max-w-lg mx-auto p-1">
                           {FINTECHS.map((fintech, i) => (
-                            <CommandItem
-                              aria-checked={
-                                fintech.value === form.getValues("fintech")
-                              }
-                              data-checked={
-                                fintech.value === form.getValues("fintech")
-                              }
-                              value={fintech.label}
+                            <FintechItem
                               key={`${fintech.value}-${i}`}
-                              onSelect={() => {
-                                form.setValue(
-                                  "fintech",
-                                  fintech.value === form.getValues("fintech")
-                                    ? ""
-                                    : fintech.value,
-                                );
-                                // setOpenSelectFintech(false);
-                              }}
-                              className="aspect-square border rounded-4xl p-0 overflow-hidden"
-                              style={{ background: fintech.color }}
-                            >
-                              <div className="w-full h-full relative p-4 z-0 flex">
-                                {/*<p className="z-2 leading-none break-all line-clamp-2">
-                                  {fintech.label}
-                                </p>*/}
-
-                                <Checker
-                                  checked={fintech.value === field.value}
-                                />
-                                <Image
-                                  src={fintech.bg}
-                                  className="m-auto -z-10 pointer-events-none"
-                                  alt={fintech.label}
-                                />
-                              </div>
-                            </CommandItem>
+                              fintech={fintech}
+                              isSelected={fintech.value === field.value}
+                              onSelect={createFintechSelectHandler(
+                                fintech.value,
+                              )}
+                            />
                           ))}
                         </div>
                       </CommandGroup>
@@ -256,21 +367,15 @@ export default function AddMoneyForm() {
                     id={field.name}
                     type="button"
                     variant="secondary"
-                    onClick={() => appendTag({ tag: "" })}
+                    onClick={handleAddTag}
                     className="py-0 px-3 text-sm font-bold text-muted-foreground border border-input"
                   >
                     Add Tag
                   </Button>
-                  {form.getValues("tags")?.length ? (
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      onClick={() => form.resetField("tags")}
-                      className="py-0 px-3 text-sm font-bold"
-                    >
-                      Reset Tags
-                    </Button>
-                  ) : null}
+                  <TagsResetButton
+                    control={form.control}
+                    onReset={handleResetTags}
+                  />
                 </Field>
               </Field>
               <FieldGroup className="flex flex-row flex-wrap gap-2">
@@ -298,7 +403,7 @@ export default function AddMoneyForm() {
                                   type="button"
                                   variant="ghost"
                                   size="icon-xs"
-                                  onClick={() => removeTag(index)}
+                                  onClick={() => handleRemoveTag(index)}
                                   aria-label={`Remove tag ${index + 1}`}
                                 >
                                   <XIcon />
@@ -319,48 +424,7 @@ export default function AddMoneyForm() {
           )}
         />
       </FieldGroup>
-      <div className="bg-background/50 backdrop-blur-2xl border-t w-full fixed bottom-0 left-1/2 -translate-x-1/2 ">
-        <Field
-          orientation="horizontal"
-          className="gap-2 max-w-lg w-full mx-auto justify-end p-4 "
-        >
-          <Button
-            disabled={!form.formState.isValid}
-            type="button"
-            variant="secondary"
-            onClick={() => {
-              form.reset();
-              form.setValue("amount", "" as unknown as number);
-            }}
-          >
-            Reset
-          </Button>
-          <Button
-            disabled={!form.formState.isValid}
-            className="capitalize"
-            type="submit"
-            form="money-form"
-          >
-            Add
-          </Button>
-        </Field>
-      </div>
+      <FormActions control={form.control} onReset={handleReset} />
     </form>
-  );
-}
-
-function Item(item: { name: string; amount: number; amountForSign?: number }) {
-  return (
-    <div key={item.name} className="flex flex-row gap-4 [&>*]:w-fit">
-      <span className="mt-auto flex-1 text-muted-foreground text-sm">
-        {item.name}:
-      </span>
-      <MonetaryValue
-        amount={item.amount}
-        amountForSign={item.amountForSign}
-        variant={"allBase"}
-        className={`${item.amountForSign === -1 ? "text-destructive" : ""}`}
-      />
-    </div>
   );
 }
