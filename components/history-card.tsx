@@ -45,7 +45,7 @@ export default function HistoryCard({ history }: { history: History }) {
           </HybridTooltipContent>
         </HybridTooltip>
       </div>
-      <EditOrRemoveCard history={history} />
+      <Data history={history} />
       <div className="z-2 flex gap-6 justify-between items-end flex-1 text-muted-foreground mt-6">
         <span className="text-base font-bold">Total Money</span>
         <HybridTooltip>
@@ -61,43 +61,60 @@ export default function HistoryCard({ history }: { history: History }) {
   );
 }
 
-function EditOrRemoveCard({ history }: { history: History }) {
-  const modifiedData = history?.edit_or_remove_history?.map((d) => ({
-    ...d,
-    valueChanged:
-      Number(d?.snapshot.after?.amount ?? 0) -
-      Number(d?.snapshot.before?.amount ?? 0),
-    fee:
-      history?.transfer_history?.receiverMoneys?.find(
+function Data({ history }: { history: History }) {
+  if (history.type === "transfer") {
+    const modifiedData = history?.edit_or_remove_history?.map((d) => ({
+      ...d,
+      valueChanged:
+        Number(d?.snapshot.after?.amount ?? 0) -
+        Number(d?.snapshot.before?.amount ?? 0),
+      fee:
+        history?.transfer_history?.receiverMoneys?.find(
+          (m) => m.id === d.money_id,
+        )?.fee ?? 0,
+      type: (history.transfer_history?.receiverMoneys?.some(
         (m) => m.id === d.money_id,
-      )?.fee ?? 0,
-    type: (history.transfer_history?.receiverMoneys?.some(
-      (m) => m.id === d.money_id,
-    )
-      ? "receiver"
-      : "sender") as "receiver" | "sender",
-  }));
+      )
+        ? "receiver"
+        : "sender") as "receiver" | "sender",
+    }));
 
-  const sender = modifiedData?.filter((f) => f.type === "sender");
-  const receiver = modifiedData?.filter((f) => f.type === "receiver");
+    const sender = modifiedData?.filter((f) => f.type === "sender");
+    const receiver = modifiedData?.filter((f) => f.type === "receiver");
 
-  if (!modifiedData) return null;
-  if (sender?.length !== 1) {
-    return null;
-  }
-  if (!receiver) {
-    return null;
-  }
-  return (
-    <div>
-      <Item data={sender[0]} history={history} />
-      <ChevronDown className="text-muted-foreground/75 dark:text-muted-foreground/25  mx-auto my-4" />
-      <div className="flex flex-col gap-6">
-        {receiver.map((data) => (
-          <Item key={data.money_id} data={data} history={history} />
-        ))}
+    if (!modifiedData) return null;
+    if (sender?.length !== 1) {
+      return null;
+    }
+    if (!receiver) {
+      return null;
+    }
+    return (
+      <div>
+        <Item data={sender[0]} history={history} />
+        <ChevronDown className="text-muted-foreground/75 dark:text-muted-foreground/25  mx-auto my-4" />
+        <div className="flex flex-col gap-6">
+          {receiver.map((data) => (
+            <Item key={data.money_id} data={data} history={history} />
+          ))}
+        </div>
       </div>
-    </div>
+    );
+  }
+
+  const firstEntry = history.edit_or_remove_history?.[0];
+  if (!firstEntry) return null;
+
+  return (
+    <Item
+      data={{
+        ...firstEntry,
+        valueChanged:
+          Number(firstEntry.snapshot.after?.amount ?? 0) -
+          Number(firstEntry.snapshot.before?.amount ?? 0),
+      }}
+      history={history}
+    />
   );
 }
 
@@ -106,9 +123,9 @@ function Item({
   history,
 }: {
   data: NonNullable<History["edit_or_remove_history"]>[number] & {
-    fee: number;
     valueChanged: number;
-    type: "receiver" | "sender";
+    fee?: number;
+    type?: "receiver" | "sender";
   };
   history: History;
 }) {
