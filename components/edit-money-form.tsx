@@ -553,7 +553,7 @@ export default function EditMoneyForm({
                 }
                 title="Select Fintech"
                 desc="Optional. But if it is, it would be cool tho."
-                content={
+                content={() => (
                   <Command className="bg-transparent rounded-4xl **:data-[slot='command-input-wrapper']:max-w-lg **:data-[slot='command-input-wrapper']:w-full **:data-[slot='command-input-wrapper']:mx-auto">
                     <CommandInput placeholder="Search fintech..." />
                     <CommandList className="p-4 max-h-full">
@@ -574,7 +574,7 @@ export default function EditMoneyForm({
                       </CommandGroup>
                     </CommandList>
                   </Command>
-                }
+                )}
               />
             </Field>
           )}

@@ -106,7 +106,7 @@ function EditOrRemove(money: IntricateMoney) {
 
   return (
     <>
-      <div className="flex flex-col gap-4 mt-2">
+      <div className="flex flex-col mt-2">
         <MoneyCard
           withOptions={false}
           money={money}

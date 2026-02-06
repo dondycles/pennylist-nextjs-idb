@@ -86,7 +86,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <ReactScan />
-      <body className={`${gilroy.className} antialiased`}>
+      <body className={`${gilroy.className} font-sans antialiased`}>
         <SerwistProvider swUrl="/serwist/sw.js">
           <ThemeProvider
             attribute="class"

@@ -37,8 +37,10 @@
     "react-dom": "19.2.3",
     "react-hook-form": "^7.71.0",
     "react-scan": "^0.4.3",
+    "react-use-measure": "^2.1.7",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.4.0",
+    "use-measure": "^0.3.0",
     "vaul": "^1.1.2",
     "zod": "^4.3.5",
     "zustand": "^5.0.9"

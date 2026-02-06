@@ -83,14 +83,15 @@ const Cell = memo(function Cell({
       </p>
       <MonetaryValue amount={m.amount ?? 0} />
       <Checker checked={checked} />
-      <div className="absolute -z-20 top-0 left-0 h-full w-full bg-linear-to-b from-background to-transparent"></div>
-      {m.fintech ? (
-        <Image
-          src={FINTECHS.find((f) => f.value === m.fintech)!.bg}
-          className="m-auto -z-10  absolute object-center h-4 w-auto max-w-16 object-contain bottom-4 left-1/2 -translate-x-1/2"
-          alt={m.fintech}
-        />
-      ) : null}
+      <div className="absolute top-0 left-1/2 w-full h-full z-0  opacity-10 pointer-events-none">
+        {m.fintech ? (
+          <Image
+            src={FINTECHS.find((f) => f.value === m.fintech)!.bg}
+            alt={m.fintech}
+            className="w-auto h-[125%] object-cover object-left"
+          />
+        ) : null}
+      </div>
     </div>
   );
 });
@@ -102,7 +103,7 @@ const CellsWrapper = memo(function CellsWrapper({
   children: React.ReactNode;
 }) {
   return (
-    <div className="grid grid-cols-1  mmxs:grid-cols-2 gap-2 max-w-lg mx-auto">
+    <div className="grid grid-cols-1  xs:grid-cols-2 gap-2 max-w-lg mx-auto">
       {children}
     </div>
   );
@@ -501,14 +502,10 @@ export default function TransferMoneyForm() {
   });
 
   // Controlled state for receiver drawer - only opens when sender is selected
-  const [receiverDrawerOpen, setReceiverDrawerOpen] = useState(false);
-  const handleReceiverDrawerOpenChange = useCallback(
+  const [senderDrawerOpen, setSenderDrawerOpen] = useState(false);
+  const handleSenderDrawerOpenChange = useCallback(
     (open: boolean) => {
-      // Only allow opening if sender money is selected
-      if (open && !senderMoneyId) {
-        return;
-      }
-      setReceiverDrawerOpen(open);
+      setSenderDrawerOpen(open);
     },
     [senderMoneyId],
   );
@@ -538,6 +535,8 @@ export default function TransferMoneyForm() {
                   )}
                 </FieldContent>
                 <BottomDrawer
+                  open={senderDrawerOpen}
+                  onOpenChange={handleSenderDrawerOpenChange}
                   trigger={
                     <Button
                       id={field.name}
@@ -553,9 +552,11 @@ export default function TransferMoneyForm() {
                   }
                   title="Select Sender Money"
                   desc="This is the money that will be sent to the receiver(s)."
-                  content={
+                  content={() => (
                     <ModifiedCommand>
-                      <CommandInput placeholder="Search money..." />
+                      <div className="px-4">
+                        <CommandInput placeholder="Search money..." />
+                      </div>
                       <CommandList className="p-4 max-h-full">
                         <CommandEmpty>No money found.</CommandEmpty>
                         <CommandGroup className="max-h-full ">
@@ -564,13 +565,13 @@ export default function TransferMoneyForm() {
                               <CommandItem
                                 value={`${m.name}-${i}`}
                                 key={m.id}
-                                onSelect={createSenderSelectHandler(m)}
-                                className={COMMAND_ITEM_CLASSNAME}
-                                style={{
-                                  background: FINTECHS.find(
-                                    (f) => f.value === m.fintech,
-                                  )?.color,
+                                onSelect={() => {
+                                  createSenderSelectHandler(m)();
+                                  setTimeout(() => {
+                                    handleSenderDrawerOpenChange(false);
+                                  }, 150);
                                 }}
+                                className={COMMAND_ITEM_CLASSNAME}
                               >
                                 <Cell
                                   m={{
@@ -588,7 +589,7 @@ export default function TransferMoneyForm() {
                         </CommandGroup>
                       </CommandList>
                     </ModifiedCommand>
-                  }
+                  )}
                 />
               </Field>
 
@@ -661,8 +662,6 @@ export default function TransferMoneyForm() {
                   )}
                 </FieldContent>
                 <BottomDrawer
-                  open={receiverDrawerOpen}
-                  onOpenChange={handleReceiverDrawerOpenChange}
                   trigger={
                     <ReceiverSelectButton
                       control={form.control}
@@ -672,9 +671,11 @@ export default function TransferMoneyForm() {
                   }
                   title="Select Receiver Moneys"
                   desc="This are the moneys that will receive from the sender."
-                  content={
+                  content={() => (
                     <ModifiedCommand>
-                      <CommandInput placeholder="Search money..." />
+                      <div className="px-4">
+                        <CommandInput placeholder="Search money..." />
+                      </div>
                       <CommandList className="p-4 max-h-full">
                         <CommandEmpty>No money found.</CommandEmpty>
                         <CommandGroup className="max-h-full ">
@@ -690,11 +691,6 @@ export default function TransferMoneyForm() {
                                     field.value,
                                   )}
                                   className={COMMAND_ITEM_CLASSNAME}
-                                  style={{
-                                    background: FINTECHS.find(
-                                      (f) => f.value === m.fintech,
-                                    )?.color,
-                                  }}
                                 >
                                   <Cell
                                     m={{
@@ -714,7 +710,7 @@ export default function TransferMoneyForm() {
                         </CommandGroup>
                       </CommandList>
                     </ModifiedCommand>
-                  }
+                  )}
                 />
               </Field>
 

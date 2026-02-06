@@ -15,6 +15,8 @@ import {
 } from "./ui/hybrid-tooltip";
 import Link from "next/link";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
+import { cn } from "@/lib/utils";
+import useMeasure from "react-use-measure";
 
 export default function HistoryCard({ history }: { history: History }) {
   return (
@@ -62,6 +64,16 @@ export default function HistoryCard({ history }: { history: History }) {
 }
 
 function Data({ history }: { history: History }) {
+  const [firstNodeRef, { y: firstNodeY }] = useMeasure({
+    debounce: 0,
+    scroll: true,
+  });
+
+  const [lastNodeRef, { y: lastNodeY }] = useMeasure({
+    debounce: 0,
+    scroll: true,
+  });
+
   if (history.type === "transfer") {
     const modifiedData = history?.edit_or_remove_history?.map((d) => ({
       ...d,
@@ -90,14 +102,46 @@ function Data({ history }: { history: History }) {
       return null;
     }
     return (
-      <div>
-        <Item data={sender[0]} history={history} />
-        <ChevronDown className="text-muted-foreground/75 dark:text-muted-foreground/25  mx-auto my-4" />
-        <div className="flex flex-col gap-6">
-          {receiver.map((data) => (
-            <Item key={data.money_id} data={data} history={history} />
-          ))}
+      <div className="relative overflowhidden">
+        {/* Sender */}
+        <div className="relative flex items-start gap-4" ref={firstNodeRef}>
+          {/* Timeline node */}
+
+          <div className="relative flex flex-col items-center mt-8 z-1">
+            <div className="size-3 rounded-full bg-red-500 ring-4 ring-red-500/20 z-10" />
+            {receiver.length > 0 && (
+              <div
+                className="w-0.5 h-full absolute top-1/2 bg-linear-to-b from-red-500 to-green-500"
+                style={{
+                  height: lastNodeY - firstNodeY,
+                }}
+              />
+            )}
+          </div>
+          {/* Content */}
+          <div className="flex-1">
+            <Item data={sender[0]} history={history} />
+          </div>
         </div>
+
+        {/* Receivers */}
+        {receiver.map((data, index) => (
+          <div
+            key={data.money_id}
+            className="relative flex items-start gap-4 mt-6 ml-8"
+            ref={index === receiver.length - 1 ? lastNodeRef : null}
+          >
+            {/* Timeline node */}
+            <div className="relative flex flex-col items-center mt-8 ">
+              <div className="absolute right-0 h-0.5 bg-green-500  z-0 w-9.75 bottom-1/2 translate-y-1/2 " />
+              <div className="size-3 rounded-full bg-green-500 ring-4 ring-green-500/20 z-10" />
+            </div>
+            {/* Content */}
+            <div className="flex-1">
+              <Item data={data} history={history} />
+            </div>
+          </div>
+        ))}
       </div>
     );
   }
@@ -121,6 +165,7 @@ function Data({ history }: { history: History }) {
 function Item({
   data,
   history,
+  className,
 }: {
   data: NonNullable<History["edit_or_remove_history"]>[number] & {
     valueChanged: number;
@@ -128,9 +173,15 @@ function Item({
     type?: "receiver" | "sender";
   };
   history: History;
+  className?: string;
 }) {
   return (
-    <div className="z-2 flex flex-col gap-2 justify-between items-center flex-1 text-muted-foreground p-6 font-bold text-base border border-dashed rounded-3xl">
+    <div
+      className={cn(
+        "z-2 flex flex-col gap-2 justify-between items-center flex-1 text-muted-foreground p-6 font-bold text-base border border-dashed rounded-3xl",
+        className,
+      )}
+    >
       <div className="flex gap-6 justify-between w-full items-start">
         <Link href={`/money/${data?.snapshot.after?.id}`} className="truncate">
           {data?.snapshot.after?.name}

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   Drawer,
   DrawerContent,
@@ -12,15 +13,25 @@ export default function BottomDrawer({
   content,
   title,
   desc,
+  open: controlledOpen,
+  onOpenChange: controlledOnOpenChange,
   ...props
 }: React.ComponentProps<typeof DrawerPrimitive.Root> & {
   trigger: React.ReactNode;
-  content: React.ReactNode;
+  content: () => React.ReactElement;
   title: string;
   desc: string;
 }) {
+  // Internal state for uncontrolled mode
+  const [internalOpen, setInternalOpen] = useState(false);
+
+  // Use controlled values if provided, otherwise use internal state
+  const isControlled = controlledOpen !== undefined;
+  const open = isControlled ? controlledOpen : internalOpen;
+  const onOpenChange = isControlled ? controlledOnOpenChange : setInternalOpen;
+
   return (
-    <Drawer {...props}>
+    <Drawer open={open} onOpenChange={onOpenChange} {...props}>
       <DrawerTrigger asChild>{trigger}</DrawerTrigger>
       <DrawerContent>
         <div className="pb-4 max-h-[90dvh] overflow-y-auto overflow-x-hidden">
@@ -28,7 +39,7 @@ export default function BottomDrawer({
             <DrawerTitle>{title}</DrawerTitle>
             <DrawerDescription>{desc}</DrawerDescription>
           </DrawerHeader>
-          {content}
+          {content()}
         </div>
       </DrawerContent>
     </Drawer>
