@@ -202,9 +202,11 @@ function Item({
           </HybridTooltipContent>
         </HybridTooltip>
       </div>
-      <blockquote className="border-l-2 pl-2 pr-1 font-normal text-base whitespace-pre-wrap w-full my-2">
-        &quot;{data.reason}&quot;
-      </blockquote>
+      {data.reason ? (
+        <blockquote className="border-l-2 pl-2 pr-1 font-normal text-base whitespace-pre-wrap w-full my-2">
+          &quot;{data.reason}&quot;
+        </blockquote>
+      ) : null}
       {data.type === "sender" ? (
         <Popover>
           <PopoverTrigger asChild>
