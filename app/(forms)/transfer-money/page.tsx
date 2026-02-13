@@ -3,6 +3,11 @@ import { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Transfer Money",
 };
-export default function TransferMoneyPage() {
-  return <TransferMoneyForm />;
+export default async function TransferMoneyPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ moneyId?: string }>;
+}) {
+  const moneyId = (await searchParams).moneyId;
+  return <TransferMoneyForm moneyId={moneyId} />;
 }

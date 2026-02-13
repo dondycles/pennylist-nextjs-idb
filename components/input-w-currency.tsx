@@ -22,9 +22,11 @@ export default function InpuntWithCurrency({
       />
       <Input
         {...props}
-        type="number"
         placeholder={placeholder || "00.00"}
         className={cn(`${amountForSign ? "pl-15" : "pl-13"}`, className)}
+        data-type="number"
+        inputMode="numeric"
+        type="text"
       />
     </div>
   );

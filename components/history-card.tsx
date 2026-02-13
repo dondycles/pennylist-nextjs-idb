@@ -1,13 +1,6 @@
 import { History } from "@/types/History";
 import MonetaryValue from "./monetary-value";
-import {
-  ChevronDown,
-  CircleQuestionMark,
-  Pencil,
-  Plane,
-  Plus,
-  Trash,
-} from "lucide-react";
+import { CircleQuestionMark, Pencil, Plane, Plus, Trash } from "lucide-react";
 import {
   HybridTooltip,
   HybridTooltipContent,
@@ -15,7 +8,7 @@ import {
 } from "./ui/hybrid-tooltip";
 import Link from "next/link";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
-import { cn } from "@/lib/utils";
+import { cn, parseFormattedNumber } from "@/lib/utils";
 import useMeasure from "react-use-measure";
 
 export default function HistoryCard({ history }: { history: History }) {
@@ -80,10 +73,11 @@ function Data({ history }: { history: History }) {
       valueChanged:
         Number(d?.snapshot.after?.amount ?? 0) -
         Number(d?.snapshot.before?.amount ?? 0),
-      fee:
+      fee: parseFormattedNumber(
         history?.transfer_history?.receiverMoneys?.find(
           (m) => m.id === d.money_id,
-        )?.fee ?? 0,
+        )?.fee,
+      ),
       type: (history.transfer_history?.receiverMoneys?.some(
         (m) => m.id === d.money_id,
       )
@@ -218,7 +212,7 @@ function Item({
               <MonetaryValue
                 amount={
                   history.transfer_history?.receiverMoneys.reduce(
-                    (acc, money) => acc + (money.fee ?? 0),
+                    (acc, money) => acc + parseFormattedNumber(money.fee),
                     0,
                   ) ?? 0
                 }
@@ -233,7 +227,7 @@ function Item({
               <div key={money.id} className="flex justify-between text-base ">
                 <span>To {money.name}: </span>
                 <MonetaryValue
-                  amount={money.fee ?? 0}
+                  amount={parseFormattedNumber(money.fee)}
                   variant={"allBase"}
                   className="font-normal [&>span[data-slot='sign']]:text-sm [&>span[data-slot='amount']]:text-sm "
                 />

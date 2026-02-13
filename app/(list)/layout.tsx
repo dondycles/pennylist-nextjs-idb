@@ -51,11 +51,6 @@ export default function ListsLayout({
                   <History />
                 </Link>
               </Button>
-              <Button variant="secondary" size="icon" asChild>
-                <Link href="/transfer-money">
-                  <Plane />
-                </Link>
-              </Button>
             </>
           ) : pathname === "/history" ? (
             <>

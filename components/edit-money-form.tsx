@@ -30,14 +30,18 @@ import {
   CommandItem,
   CommandList,
 } from "./ui/command";
-import { cn } from "@/lib/utils";
+import { cn, parseFormattedNumber } from "@/lib/utils";
 import {
   InputGroup,
   InputGroupAddon,
   InputGroupButton,
   InputGroupInput,
 } from "./ui/input-group";
-import { BasicMoney, moneyIntricateSchema } from "@/types/Money";
+import {
+  BasicMoney,
+  moneyIntricateFormSchema,
+  moneyIntricateSchema,
+} from "@/types/Money";
 import { useMoneysStore } from "@/store/Moneys";
 import { FINTECHS } from "@/lib/contants";
 import { useActionConfirmStore } from "@/store/ActionConfirm";
@@ -52,10 +56,11 @@ import MonetaryValue from "./monetary-value";
 import { Textarea } from "./ui/textarea";
 import { Separator } from "./ui/separator";
 import Checker from "./checker";
+import { NumericFormat } from "react-number-format";
 
 // Type for form control
 type EditFormControl = ReturnType<
-  typeof useForm<z.infer<typeof moneyIntricateSchema>>
+  typeof useForm<z.infer<typeof moneyIntricateFormSchema>>
 >["control"];
 
 // Memoized Item component
@@ -192,12 +197,13 @@ export default function EditMoneyForm({
     (state) => state.setMoneyInActionNewDataForEditOrRemove,
   );
 
-  const form = useForm<z.infer<typeof moneyIntricateSchema>>({
-    resolver: zodResolver(moneyIntricateSchema),
+  const form = useForm<z.infer<typeof moneyIntricateFormSchema>>({
+    resolver: zodResolver(moneyIntricateFormSchema),
     defaultValues: {
       ...targetMoney,
+      amount: String(targetMoney.amount),
       date_edited: date,
-      amountChange: "" as unknown as number,
+      amountChange: "" as unknown as string,
       operation: "add",
       reason: "",
       adjustmentType: "manual",
@@ -270,10 +276,19 @@ export default function EditMoneyForm({
   );
 
   const onSubmit = useCallback(
-    (money: z.infer<typeof moneyIntricateSchema>) => {
+    (money: z.infer<typeof moneyIntricateFormSchema>) => {
+      // Convert amount to number for comparison
+      const numericAmount = parseFormattedNumber(money.amount);
+
       if (
         _.isEqual(
-          _.pick(money, "amount", "name", "fintech", "tags"),
+          _.pick(
+            { ...money, amount: numericAmount },
+            "amount",
+            "name",
+            "fintech",
+            "tags",
+          ),
           _.pick(targetMoney, "amount", "name", "fintech", "tags"),
         )
       )
@@ -286,8 +301,11 @@ export default function EditMoneyForm({
           description: "The money does not exist.",
         });
 
+      // Transform form data to IntricateMoney type using the schema
+      const transformedMoney = moneyIntricateSchema.parse(money);
+
       setMoneyInActionForEditOrRemove(targetMoney);
-      setMoneyInActionNewDataForEditOrRemove(money);
+      setMoneyInActionNewDataForEditOrRemove(transformedMoney);
       setTypeOfAction("editMoney");
       setOpenDialog(true);
     },
@@ -302,8 +320,8 @@ export default function EditMoneyForm({
   );
 
   useEffect(() => {
-    form.setValue("amountChange", "" as unknown as number);
-    if (targetMoney) form.setValue("amount", targetMoney.amount);
+    form.setValue("amountChange", "" as unknown as string);
+    if (targetMoney) form.setValue("amount", String(targetMoney.amount));
   }, [adjustmentType, form, targetMoney, targetMoney.amount]);
 
   return (
@@ -379,7 +397,9 @@ export default function EditMoneyForm({
                               Manually set the amount
                             </FieldDescription>
                           </FieldContent>
-                          <InpuntWithCurrency
+                          <NumericFormat
+                            thousandSeparator
+                            customInput={InpuntWithCurrency}
                             aria-invalid={fieldState.invalid}
                             id={field.name}
                             min={0}
@@ -394,10 +414,12 @@ export default function EditMoneyForm({
                     <Separator className="opacity-50" />
                     <Item
                       name="Difference"
-                      amount={targetMoney.amount - Number(amount)}
+                      amount={targetMoney.amount - parseFormattedNumber(amount)}
                       amountForSign={
-                        targetMoney.amount - Number(amount) <= 0
-                          ? targetMoney.amount - Number(amount) === 0
+                        targetMoney.amount - parseFormattedNumber(amount) <= 0
+                          ? targetMoney.amount -
+                              parseFormattedNumber(amount) ===
+                            0
                             ? 0
                             : 1
                           : -1
@@ -466,7 +488,9 @@ export default function EditMoneyForm({
                                 </FieldSet>
                               )}
                             />
-                            <InpuntWithCurrency
+                            <NumericFormat
+                              thousandSeparator
+                              customInput={InpuntWithCurrency}
                               min={0}
                               aria-invalid={fieldState.invalid}
                               amountForSign={operation === "add" ? 1 : -1}
@@ -493,13 +517,15 @@ export default function EditMoneyForm({
                           name: "Final Amount",
                           amount:
                             operation === "add"
-                              ? Number(amount ?? 0) + Number(amountChange ?? 0)
-                              : Number(amount ?? 0) - Number(amountChange ?? 0),
+                              ? parseFormattedNumber(amount) +
+                                parseFormattedNumber(amountChange)
+                              : parseFormattedNumber(amount) -
+                                parseFormattedNumber(amountChange),
                           amountForSign:
                             operation === "add"
                               ? 0
-                              : Number(amount ?? 0) -
-                                    Number(amountChange ?? 0) >=
+                              : parseFormattedNumber(amount) -
+                                    parseFormattedNumber(amountChange) >=
                                   0
                                 ? 0
                                 : -1,
@@ -565,9 +591,12 @@ export default function EditMoneyForm({
                               key={`${fintech.value}-${i}`}
                               fintech={fintech}
                               isSelected={fintech.value === field.value}
-                              onSelect={createFintechSelectHandler(
-                                fintech.value,
-                              )}
+                              onSelect={() => {
+                                createFintechSelectHandler(fintech.value)();
+                                setTimeout(() => {
+                                  setOpenSelectFintech(false);
+                                }, 150);
+                              }}
                             />
                           ))}
                         </div>

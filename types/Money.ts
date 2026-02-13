@@ -1,15 +1,25 @@
 import z from "zod";
+import { parseFormattedNumber } from "@/lib/utils";
 
-// Base schema without transformations - can be extended
-export const moneyBasicSchema = z.object({
+/**
+ * Reusable schema for numeric strings that may contain formatting (commas).
+ * Validates that the parsed value is a non-negative number.
+ */
+const formattedNumericStringSchema = (allowEmpty = false) =>
+  z.string().refine((val) => {
+    if (allowEmpty && (!val || val === "")) return true;
+    const num = parseFormattedNumber(val);
+    return !isNaN(num) && num >= 0;
+  }, "Amount must be a valid non-negative number");
+
+// Form schema without transformations - for use with react-hook-form
+export const moneyFormSchema = z.object({
   id: z.nanoid().min(1, "ID is required."),
   name: z
     .string()
     .min(1, "Name it at least 1 character.")
     .max(32, "Name must be at most 32 characters."),
-  amount: z.coerce
-    .number<number>("Amount must only be in numeric.")
-    .nonnegative("Amount must not be negative"),
+  amount: formattedNumericStringSchema(),
   fintech: z.string().optional(),
   tags: z
     .array(
@@ -21,49 +31,92 @@ export const moneyBasicSchema = z.object({
   date_added: z.string().min(1, "Date added is required"),
   date_edited: z.string(),
 });
+
+// Base schema with transformations - can be extended
+export const moneyBasicSchema = moneyFormSchema.extend({
+  amount: formattedNumericStringSchema().transform((val) =>
+    parseFormattedNumber(val),
+  ),
+});
 export type BasicMoney = z.infer<typeof moneyBasicSchema>;
 
 const moneyIntricateBaseSchema = moneyBasicSchema.extend({
   operation: z.enum(["add", "deduct"]).default("add").optional(),
-  amountChange: z.coerce
-    .number<number>("Amount must only be in numeric.")
-    .nonnegative("Amount must not be negative")
-    .default(0)
-    .optional(),
+  amountChange: formattedNumericStringSchema(true).optional(),
   adjustmentType: z.enum(["manual", "addDeduct"]).default("manual").optional(),
   reason: z.string().optional(),
 });
 
-export const moneyIntricateSchema = moneyIntricateBaseSchema
-  .superRefine((data, ctx) => {
+// Shared validation logic for intricate money schemas
+const intricateSchemaValidation = (
+  data: {
+    amount: string | number;
+    amountChange?: string;
+    operation?: "add" | "deduct";
+    adjustmentType?: "manual" | "addDeduct";
+  },
+  ctx: z.RefinementCtx,
+) => {
+  const amountChangeNum = parseFormattedNumber(data.amountChange);
+  const amountNum = Number(data.amount ?? 0);
+
+  if (data.adjustmentType === "manual" && amountChangeNum > 0) {
+    ctx.addIssue({
+      code: "custom",
+      message: "Cannot adjust if manually set.",
+      path: ["amountChange"],
+    });
+  }
+
+  if (data.adjustmentType === "addDeduct") {
     if (
-      data.adjustmentType === "manual" &&
-      Number(data.amountChange ?? 0) > 0
-    ) {
-      ctx.addIssue({
-        code: "custom",
-        message: "Cannot adjust if manually set.",
-        path: ["amountChange"],
-      });
-    }
-    if (
-      data.adjustmentType === "addDeduct" &&
-      (data.amountChange === undefined || data.amountChange === 0)
+      !data.amountChange ||
+      data.amountChange === "" ||
+      amountChangeNum === 0
     ) {
       ctx.addIssue({
         code: "custom",
         message: "Amount change is required for adjustment.",
         path: ["amountChange"],
       });
+    } else {
+      const finalAmount =
+        data.operation === "add"
+          ? amountNum + amountChangeNum
+          : amountNum - amountChangeNum;
+
+      if (finalAmount < 0) {
+        ctx.addIssue({
+          code: "custom",
+          message: "Resulting amount cannot be negative.",
+          path: ["amountChange"],
+        });
+      }
     }
+  }
+};
+
+export const moneyIntricateFormSchema = moneyFormSchema
+  .extend({
+    operation: z.enum(["add", "deduct"]).default("add").optional(),
+    amountChange: formattedNumericStringSchema(true).optional(),
+    adjustmentType: z
+      .enum(["manual", "addDeduct"])
+      .default("manual")
+      .optional(),
+    reason: z.string().optional(),
   })
+  .superRefine(intricateSchemaValidation);
+
+export const moneyIntricateSchema = moneyIntricateBaseSchema
+  .superRefine(intricateSchemaValidation)
   .transform((data) => {
     // Calculate final amount: amount + addAmount - removeAmount
     if (data.adjustmentType === "addDeduct") {
       const finalAmount =
         data.operation === "add"
-          ? Number(data.amount ?? 0) + Number(data.amountChange ?? 0)
-          : Number(data.amount ?? 0) - Number(data.amountChange ?? 0);
+          ? Number(data.amount ?? 0) + parseFormattedNumber(data.amountChange)
+          : Number(data.amount ?? 0) - parseFormattedNumber(data.amountChange);
 
       return {
         ...data,
@@ -80,85 +133,60 @@ export const moneyIntricateSchema = moneyIntricateBaseSchema
 
 export type IntricateMoney = z.infer<typeof moneyIntricateSchema>;
 
-export const moneyTransferFormSchema = z
+// Form input schema for transfer (before transformation) - for react-hook-form
+export const moneyTransferInputSchema = z
   .object({
-    senderMoney: moneyIntricateBaseSchema
-      .extend({
+    senderMoney: moneyIntricateFormSchema
+      .safeExtend({
         node: z.enum(["sender", "receiver"]).optional(),
         reason: z.string().optional(),
-        demands: z.coerce
-          .number<number>("Amount must only be in numeric.")
-          .nonnegative("Amount must not be negative"),
+        demands: formattedNumericStringSchema(),
       })
-      .transform((data) => {
-        // Calculate final amount: amount + addAmount - removeAmount
-        const finalAmount =
-          data.operation === "add"
-            ? Number(data.amount ?? 0) + Number(data.amountChange ?? 0)
-            : Number(data.amount ?? 0) - Number(data.amountChange ?? 0);
-
-        return {
-          ...data,
-          amount: finalAmount,
-        };
-      }),
+      .optional(),
     receiverMoneys: z
       .array(
-        moneyIntricateBaseSchema
-          .extend({
-            node: z.enum(["sender", "receiver"]).optional(),
-            reason: z.string().optional(),
-            demand: z.coerce
-              .number<number>("Amount must only be in numeric.")
-              .nonnegative("Amount must not be negative")
-              .default(0)
-              .optional(),
-            fee: z.coerce
-              .number<number>("Amount must only be in numeric.")
-              .nonnegative("Amount must not be negative")
-              .default(0)
-              .optional(),
-          })
-          .transform((data) => {
-            // Calculate final amount: amount + addAmount - removeAmount
-            const finalAmount =
-              data.operation === "add"
-                ? Number(data.amount ?? 0) + Number(data.amountChange ?? 0)
-                : Number(data.amount ?? 0) - Number(data.amountChange ?? 0);
-
-            return {
-              ...data,
-              amount: finalAmount,
-            };
-          }),
+        moneyIntricateFormSchema.safeExtend({
+          node: z.enum(["sender", "receiver"]).optional(),
+          reason: z.string().optional(),
+          demand: formattedNumericStringSchema(true).optional(),
+          fee: formattedNumericStringSchema(true).optional(),
+        }),
       )
       .min(1, "At least 1 receiver needed."),
   })
   .superRefine((data, ctx) => {
+    if (!data.senderMoney) return;
+
     const totalDemands = data.receiverMoneys.reduce(
-      (sum, rm) => sum + (Number(rm.demand) || 0),
+      (sum, rm) => sum + parseFormattedNumber(rm.demand),
       0,
     );
+    const totalFees = data.receiverMoneys.reduce(
+      (sum, rm) => sum + parseFormattedNumber(rm.fee),
+      0,
+    );
+    const senderAmount = parseFormattedNumber(data.senderMoney.amount);
 
-    if (totalDemands > (data.senderMoney.amount ?? 0)) {
+    if (totalDemands + totalFees > senderAmount) {
       ctx.addIssue({
         code: "custom",
-        message: `Total demand (${totalDemands}) exceeds sender balance (${data.senderMoney.amount})`,
-        // Attaching to the array root is usually best for "total" logic
+        message: `Total demand (${totalDemands + totalFees}) exceeds sender balance (${senderAmount})`,
         path: ["senderMoney", "demands"],
       });
       data.receiverMoneys.forEach((_, i) => {
         ctx.addIssue({
           code: "custom",
-          message: `Total demand (${totalDemands}) exceeds sender balance (${data.senderMoney.amount})`,
-          // Attaching to the array root is usually best for "total" logic
+          message: `Total demand (${totalDemands + totalFees}) exceeds sender balance (${senderAmount})`,
           path: ["receiverMoneys", i, "demand"],
         });
       });
     }
 
     data.receiverMoneys.forEach((rm, i) => {
-      if ((rm.fee ?? 0) > 0 && rm.demand === 0) {
+      if (
+        parseFormattedNumber(rm.fee) > 0 &&
+        parseFormattedNumber(rm.demand) === 0
+      ) {
         ctx.addIssue({
           code: "custom",
           message: `There must be a demand if there is a fee.`,
@@ -167,5 +195,25 @@ export const moneyTransferFormSchema = z
       }
     });
   });
+
+// Schema with transformations - for final validation/transformation
+export const moneyTransferFormSchema = moneyTransferInputSchema.transform(
+  (data) => {
+    if (!data.senderMoney) {
+      throw new Error("Sender money is required");
+    }
+
+    return {
+      senderMoney: {
+        ...data.senderMoney,
+        amount: parseFormattedNumber(data.senderMoney.amount),
+      },
+      receiverMoneys: data.receiverMoneys.map((rm) => ({
+        ...rm,
+        amount: parseFormattedNumber(rm.amount),
+      })),
+    };
+  },
+);
 
 export type MoneyTransfer = z.infer<typeof moneyTransferFormSchema>;

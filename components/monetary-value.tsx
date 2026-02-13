@@ -49,7 +49,7 @@ export default function MonetaryValue({
       <span data-slot="amount">
         {hideNumbers
           ? Array.from({ length: amount.toString().length }).map(() => "*")
-          : amountFormat(amount)}
+          : amountFormat(amountForSign ? Math.abs(amount) : amount)}
       </span>
     </span>
   );

@@ -6,12 +6,13 @@ import {
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
 import { Button } from "./ui/button";
-import { Ellipsis, Pencil, Trash } from "lucide-react";
+import { Ellipsis, Pencil, Send, Trash } from "lucide-react";
 import Image from "next/image";
 import { FINTECHS } from "@/lib/contants";
 import MonetaryValue from "./monetary-value";
 import { cn } from "@/lib/utils";
 import { Badge } from "./ui/badge";
+import Link from "next/link";
 
 export default function MoneyCard({
   money,
@@ -82,7 +83,11 @@ export default function MoneyCard({
               <Pencil />
               Edit
             </DropdownMenuItem>
-
+            <DropdownMenuItem asChild>
+              <Link href={`/transfer-money?moneyId=${money.id}`}>
+                <Send /> <p>Transfer</p>
+              </Link>
+            </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => {
                 doAction!("remove");
@@ -94,7 +99,7 @@ export default function MoneyCard({
         </DropdownMenu>
       ) : null}
 
-      <div className="absolute top-0 left-1/2 w-full h-full z-0  opacity-10 pointer-events-none">
+      <div className="absolute top-0 left-1/2 w-full h-full -z-10  opacity-10 pointer-events-none">
         {fintechData ? (
           fintechData.bg ? (
             <Image

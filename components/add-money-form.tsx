@@ -10,6 +10,7 @@ import {
   FieldSet,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { NumericFormat } from "react-number-format";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -36,7 +37,7 @@ import {
   InputGroupButton,
   InputGroupInput,
 } from "./ui/input-group";
-import { moneyIntricateSchema, moneyBasicSchema } from "@/types/Money";
+import { moneyIntricateSchema, moneyIntricateFormSchema } from "@/types/Money";
 import { useMoneysStore } from "@/store/Moneys";
 import { nanoid } from "nanoid";
 import { useRouter } from "next/navigation";
@@ -87,7 +88,7 @@ const FormActions = memo(function FormActions({
   onReset,
 }: {
   control: ReturnType<
-    typeof useForm<z.infer<typeof moneyBasicSchema>>
+    typeof useForm<z.infer<typeof moneyIntricateFormSchema>>
   >["control"];
   onReset: () => void;
 }) {
@@ -126,7 +127,7 @@ const TagsResetButton = memo(function TagsResetButton({
   onReset,
 }: {
   control: ReturnType<
-    typeof useForm<z.infer<typeof moneyBasicSchema>>
+    typeof useForm<z.infer<typeof moneyIntricateFormSchema>>
   >["control"];
   onReset: () => void;
 }) {
@@ -156,12 +157,12 @@ export default function AddMoneyForm() {
   const getMoneys = useMoneysStore((state) => state.moneys);
   const addHistory = useHistoryStore((state) => state.addHistory);
 
-  const form = useForm<z.infer<typeof moneyBasicSchema>>({
-    resolver: zodResolver(moneyBasicSchema),
+  const form = useForm<z.infer<typeof moneyIntricateFormSchema>>({
+    resolver: zodResolver(moneyIntricateFormSchema),
     defaultValues: {
       id: nanoid(),
       name: "",
-      amount: "" as unknown as number,
+      amount: "",
       fintech: "",
       tags: [],
       date_added: date,
@@ -193,7 +194,6 @@ export default function AddMoneyForm() {
 
   const handleReset = useCallback(() => {
     form.reset();
-    form.setValue("amount", "" as unknown as number);
   }, [form]);
 
   const handleRemoveTag = useCallback(
@@ -204,7 +204,10 @@ export default function AddMoneyForm() {
   );
 
   const onSubmit = useCallback(
-    (money: z.infer<typeof moneyIntricateSchema>) => {
+    (formData: z.infer<typeof moneyIntricateFormSchema>) => {
+      // Use the schema to transform form data (strings to numbers)
+      const money = moneyIntricateSchema.parse(formData);
+
       // Get moneys at submission time, not reactively
       const total_money = _.sum(getMoneys.map((m) => Number(m.amount)));
       addMoney(money);
@@ -217,18 +220,18 @@ export default function AddMoneyForm() {
           {
             money_id: money.id,
             snapshot: {
-              after: form.getValues(),
+              after: money,
             },
           },
         ],
         total_money: {
           before: total_money,
-          after: Number(total_money) + Number(form.getValues("amount")),
+          after: Number(total_money) + Number(money.amount),
         },
       });
       router.push("/list");
     },
-    [addMoney, addHistory, date, form, getMoneys, router],
+    [addMoney, addHistory, date, getMoneys, router],
   );
 
   // Memoize the fintech select handler factory
@@ -256,6 +259,7 @@ export default function AddMoneyForm() {
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
               <FieldLabel htmlFor={field.name}>Name</FieldLabel>
+
               <Input
                 {...field}
                 id={field.name}
@@ -273,7 +277,9 @@ export default function AddMoneyForm() {
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
               <FieldLabel htmlFor={field.name}>Amount</FieldLabel>
-              <InpuntWithCurrency
+              <NumericFormat
+                thousandSeparator
+                customInput={InpuntWithCurrency}
                 id={field.name}
                 aria-invalid={fieldState.invalid}
                 min={0}
@@ -333,9 +339,12 @@ export default function AddMoneyForm() {
                               key={`${fintech.value}-${i}`}
                               fintech={fintech}
                               isSelected={fintech.value === field.value}
-                              onSelect={createFintechSelectHandler(
-                                fintech.value,
-                              )}
+                              onSelect={() => {
+                                createFintechSelectHandler(fintech.value)();
+                                setTimeout(() => {
+                                  setOpenSelectFintech(false);
+                                }, 150);
+                              }}
                             />
                           ))}
                         </div>

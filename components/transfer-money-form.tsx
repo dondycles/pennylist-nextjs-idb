@@ -29,11 +29,11 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { cn } from "@/lib/utils";
+import { cn, parseFormattedNumber } from "@/lib/utils";
 
 import {
   BasicMoney,
-  MoneyTransfer,
+  moneyTransferInputSchema,
   moneyTransferFormSchema,
 } from "@/types/Money";
 import { useMoneysStore } from "@/store/Moneys";
@@ -50,13 +50,14 @@ import { useActionConfirmStore } from "@/store/ActionConfirm";
 import InpuntWithCurrency from "./input-w-currency";
 import MonetaryValue from "./monetary-value";
 import Checker from "./checker";
+import { NumericFormat } from "react-number-format";
 
 // Move constant outside component to prevent recreation
 const COMMAND_ITEM_CLASSNAME = "border rounded-4xl p-0 overflow-hidden";
 
 // Type for form control
 type TransferFormControl = ReturnType<
-  typeof useForm<z.infer<typeof moneyTransferFormSchema>>
+  typeof useForm<z.infer<typeof moneyTransferInputSchema>>
 >["control"];
 
 // Memoized Cell component
@@ -64,7 +65,7 @@ const Cell = memo(function Cell({
   m,
   checked,
 }: {
-  m: MoneyTransfer["receiverMoneys"][number];
+  m: z.infer<typeof moneyTransferInputSchema>["receiverMoneys"][number];
   checked: boolean;
 }) {
   return (
@@ -81,7 +82,7 @@ const Cell = memo(function Cell({
           </span>
         ))}
       </p>
-      <MonetaryValue amount={m.amount ?? 0} />
+      <MonetaryValue amount={parseFormattedNumber(m.amount)} />
       <Checker checked={checked} />
       <div className="absolute top-0 left-1/2 w-full h-full z-0  opacity-10 pointer-events-none">
         {m.fintech ? (
@@ -165,8 +166,10 @@ const SenderMoneyValue = memo(function SenderMoneyValue({
   const amount = useWatch({ control, name: "senderMoney.amount" });
   const demands = useWatch({ control, name: "senderMoney.demands" });
 
-  const remaining = Number(amount ?? 0) - Number(demands ?? 0);
-  const amountForSign = Number(amount ?? 0) < Number(demands ?? 0) ? -1 : 0;
+  const remaining =
+    parseFormattedNumber(amount) - parseFormattedNumber(demands);
+  const amountForSign =
+    parseFormattedNumber(amount) < parseFormattedNumber(demands) ? -1 : 0;
 
   return <MonetaryValue amount={remaining} amountForSign={amountForSign} />;
 });
@@ -182,7 +185,7 @@ const ReceiverMoneyValue = memo(function ReceiverMoneyValue({
   const amount = useWatch({ control, name: `receiverMoneys.${index}.amount` });
   const demand = useWatch({ control, name: `receiverMoneys.${index}.demand` });
 
-  const total = Number(amount ?? 0) + Number(demand ?? 0);
+  const total = parseFormattedNumber(amount) + parseFormattedNumber(demand);
 
   return <MonetaryValue amount={total} amountForSign={0} />;
 });
@@ -195,24 +198,29 @@ const DemandsCalculator = memo(function DemandsCalculator({
 }: {
   control: TransferFormControl;
   moneys: BasicMoney[];
-  form: ReturnType<typeof useForm<z.infer<typeof moneyTransferFormSchema>>>;
+  form: ReturnType<typeof useForm<z.infer<typeof moneyTransferInputSchema>>>;
 }) {
   const receivers = useWatch({ control, name: "receiverMoneys" });
   const receiverDemands = useWatch({ control, name: "senderMoney.demands" });
 
   useEffect(() => {
-    const totalDemands = _.sumBy(receivers, (rm) => Number(rm.demand || 0));
-    const totalFees = _.sumBy(receivers, (rm) => Number(rm.fee || 0));
+    const totalDemands = _.sumBy(receivers, (rm) =>
+      parseFormattedNumber(rm.demand),
+    );
+    const totalFees = _.sumBy(receivers, (rm) => parseFormattedNumber(rm.fee));
     const totalAmount = totalDemands + totalFees;
 
-    form.setValue("senderMoney.demands", totalAmount);
+    form.setValue("senderMoney.demands", String(totalAmount));
   }, [form, receivers]);
 
   useEffect(() => {
     const senderMoney = moneys.find(
       (m) => m.id === form.getValues("senderMoney")?.id,
     );
-    if (receiverDemands > (senderMoney?.amount ?? 0)) {
+    if (
+      receiverDemands !== undefined &&
+      parseFormattedNumber(receiverDemands) > (senderMoney?.amount ?? 0)
+    ) {
       form.setError("senderMoney.demands", {
         message: `Total demand (${receiverDemands}) exceeds sender balance (${senderMoney?.amount})`,
       });
@@ -231,13 +239,18 @@ const ReceiverCard = memo(function ReceiverCard({
   control,
   onRemove,
 }: {
-  money: MoneyTransfer["receiverMoneys"][number];
+  money: z.infer<typeof moneyTransferInputSchema>["receiverMoneys"][number];
   index: number;
   control: TransferFormControl;
   onRemove: () => void;
 }) {
   return (
-    <MoneyTransferCardWForm money={money}>
+    <MoneyTransferCardWForm
+      money={{
+        ...money,
+        amount: parseFormattedNumber(money.amount),
+      }}
+    >
       <>
         <div className="flex justify-between">
           <div className="grid">
@@ -271,7 +284,9 @@ const ReceiverCard = memo(function ReceiverCard({
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
                 <FieldLabel htmlFor={field.name}>Amount to receive</FieldLabel>
-                <InpuntWithCurrency
+                <NumericFormat
+                  thousandSeparator
+                  customInput={InpuntWithCurrency}
                   aria-invalid={fieldState.invalid}
                   amountForSign={1}
                   {...field}
@@ -288,7 +303,9 @@ const ReceiverCard = memo(function ReceiverCard({
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
                 <FieldLabel htmlFor={field.name}>Fee</FieldLabel>
-                <InpuntWithCurrency
+                <NumericFormat
+                  thousandSeparator
+                  customInput={InpuntWithCurrency}
                   aria-invalid={fieldState.invalid}
                   amountForSign={0}
                   {...field}
@@ -368,9 +385,13 @@ const ReceiverSelectButton = memo(
   }),
 );
 
-export default function TransferMoneyForm() {
+export default function TransferMoneyForm({ moneyId }: { moneyId?: string }) {
   // Use selective zustand selectors
   const moneys = useMoneysStore((state) => state.moneys);
+  const targetedSenderMoney = useMoneysStore((state) =>
+    state.moneys.find((money) => money.id === moneyId),
+  );
+
   const setOpenDialog = useActionConfirmStore((state) => state.setOpenDialog);
   const setMoneysInActionForTransfer = useActionConfirmStore(
     (state) => state.setMoneysInActionForTransfer,
@@ -379,10 +400,17 @@ export default function TransferMoneyForm() {
     (state) => state.setTypeOfAction,
   );
 
-  const form = useForm<z.infer<typeof moneyTransferFormSchema>>({
-    resolver: zodResolver(moneyTransferFormSchema),
+  const form = useForm<z.infer<typeof moneyTransferInputSchema>>({
+    resolver: zodResolver(moneyTransferInputSchema),
     defaultValues: {
-      senderMoney: undefined,
+      senderMoney: targetedSenderMoney
+        ? {
+            ...targetedSenderMoney,
+            amount: String(targetedSenderMoney.amount), // Convert number to string for form
+            node: "sender",
+            demands: undefined as unknown as string,
+          }
+        : undefined,
       receiverMoneys: [],
     },
     reValidateMode: "onChange",
@@ -416,27 +444,39 @@ export default function TransferMoneyForm() {
   );
 
   const onSubmit = useCallback(
-    (transferData: z.infer<typeof moneyTransferFormSchema>) => {
+    (transferData: z.infer<typeof moneyTransferInputSchema>) => {
+      // Ensure senderMoney exists
+      if (!transferData.senderMoney) {
+        toast.error("Sender money is required");
+        return;
+      }
+
       const fees = transferData.receiverMoneys.reduce(
-        (acc, rm) => acc + Number(rm.fee ?? 0),
+        (acc: number, rm) => acc + parseFormattedNumber(rm.fee),
         0,
       );
       const demands = transferData.receiverMoneys.reduce(
-        (acc, rm) => acc + Number(rm.demand ?? 0),
+        (acc: number, rm) => acc + parseFormattedNumber(rm.demand),
         0,
       );
       const totalAmount = demands + fees;
 
       console.log(totalAmount, transferData.senderMoney.demands);
 
-      if (totalAmount !== transferData.senderMoney.demands) {
+      if (
+        totalAmount !== parseFormattedNumber(transferData.senderMoney.demands)
+      ) {
         form.setError("senderMoney.demands", {
           message: "Demands do not match",
         });
         toast.error("Demands do not match");
         return;
       }
-      setMoneysInActionForTransfer(transferData);
+
+      // Transform to MoneyTransfer type (convert string amounts to numbers) using the schema
+      const transformedData = moneyTransferFormSchema.parse(transferData);
+
+      setMoneysInActionForTransfer(transformedData);
       setTypeOfAction("transferMoney");
       setOpenDialog(true);
     },
@@ -448,8 +488,9 @@ export default function TransferMoneyForm() {
     (m: (typeof moneys)[number]) => () => {
       form.setValue("senderMoney", {
         ...m,
+        amount: String(m.amount), // Convert number to string for form
         node: "sender",
-        demands: undefined as unknown as number,
+        demands: undefined as unknown as string,
       });
       form.setValue("receiverMoneys", []);
     },
@@ -460,7 +501,9 @@ export default function TransferMoneyForm() {
   const createReceiverSelectHandler = useCallback(
     (
       m: (typeof moneys)[number],
-      currentReceivers: MoneyTransfer["receiverMoneys"] | undefined,
+      currentReceivers:
+        | z.infer<typeof moneyTransferInputSchema>["receiverMoneys"]
+        | undefined,
     ) =>
       () => {
         if (currentReceivers?.find((rm) => rm.id === m.id)) {
@@ -475,19 +518,21 @@ export default function TransferMoneyForm() {
                   ...currentReceivers,
                   {
                     ...m,
+                    amount: String(m.amount), // Convert number to string for form
                     node: "receiver",
-                    demand: undefined as unknown as number,
+                    demand: undefined as unknown as string,
                     reason: "",
-                    fee: undefined as unknown as number,
+                    fee: undefined as unknown as string,
                   },
                 ]
               : [
                   {
                     ...m,
+                    amount: String(m.amount), // Convert number to string for form
                     node: "receiver",
-                    demand: undefined as unknown as number,
+                    demand: undefined as unknown as string,
                     reason: "",
-                    fee: undefined as unknown as number,
+                    fee: undefined as unknown as string,
                   },
                 ],
           );
@@ -501,14 +546,10 @@ export default function TransferMoneyForm() {
     name: "senderMoney.id",
   });
 
-  // Controlled state for receiver drawer - only opens when sender is selected
   const [senderDrawerOpen, setSenderDrawerOpen] = useState(false);
-  const handleSenderDrawerOpenChange = useCallback(
-    (open: boolean) => {
-      setSenderDrawerOpen(open);
-    },
-    [senderMoneyId],
-  );
+  const handleSenderDrawerOpenChange = useCallback((open: boolean) => {
+    setSenderDrawerOpen(open);
+  }, []);
 
   return (
     <form
@@ -576,10 +617,11 @@ export default function TransferMoneyForm() {
                                 <Cell
                                   m={{
                                     ...m,
+                                    amount: String(m.amount), // Convert number to string for Cell
                                     node: "sender",
-                                    demand: undefined as unknown as number,
+                                    demand: undefined as unknown as string,
                                     reason: "",
-                                    fee: undefined as unknown as number,
+                                    fee: undefined as unknown as string,
                                   }}
                                   checked={field.value?.id === m.id}
                                 />
@@ -594,14 +636,19 @@ export default function TransferMoneyForm() {
               </Field>
 
               {field.value?.id ? (
-                <MoneyTransferCardWForm money={field.value}>
+                <MoneyTransferCardWForm
+                  money={{
+                    ...field.value,
+                    amount: parseFormattedNumber(field.value.amount),
+                  }}
+                >
                   <div className="grid">
                     <span className="font-black text-muted-foreground truncate">
                       <span>{field.value.name}</span>
                       {field.value.tags?.map((tag, i) => (
                         <span
                           className="text-foreground/25"
-                          key={`${field.value.name}-#${tag.tag}-${i}`}
+                          key={`${field.value!.name}-#${tag.tag}-${i}`}
                         >
                           #{tag.tag.toLowerCase()}{" "}
                         </span>
@@ -695,10 +742,11 @@ export default function TransferMoneyForm() {
                                   <Cell
                                     m={{
                                       ...m,
+                                      amount: String(m.amount), // Convert number to string for Cell
                                       node: "receiver",
-                                      demand: undefined as unknown as number,
+                                      demand: undefined as unknown as string,
                                       reason: "",
-                                      fee: undefined as unknown as number,
+                                      fee: undefined as unknown as string,
                                     }}
                                     checked={field.value?.some(
                                       (rm) => rm.id === m.id,
