@@ -15,6 +15,7 @@ import {
   HybridTooltipTrigger,
 } from "./ui/hybrid-tooltip";
 import Link from "next/link";
+import { parseFormattedNumber } from "@/lib/utils";
 
 export default function HistoryTableInfo({
   data,
@@ -58,7 +59,7 @@ export default function HistoryTableInfo({
           <TableCell className="text-right text-orange-500">
             <MonetaryValue
               amountForSign={-1}
-              amount={Number(data.senderMoney.demands)}
+              amount={parseFormattedNumber(data.senderMoney.demands)}
               variant="allBase"
             />
           </TableCell>
@@ -78,7 +79,7 @@ export default function HistoryTableInfo({
             <TableCell className="text-right text-green-600">
               <MonetaryValue
                 amountForSign={1}
-                amount={Number(receiver.demand)}
+                amount={parseFormattedNumber(receiver.demand)}
                 variant="allBase"
               />
             </TableCell>
@@ -86,7 +87,7 @@ export default function HistoryTableInfo({
             <TableCell className="text-right">
               <MonetaryValue
                 amountForSign={0}
-                amount={Number(receiver.fee)}
+                amount={parseFormattedNumber(receiver.fee)}
                 variant="allBase"
               />
             </TableCell>
@@ -102,7 +103,7 @@ export default function HistoryTableInfo({
             <MonetaryValue
               amountForSign={-1}
               amount={data.receiverMoneys.reduce(
-                (sum, r) => sum + Number(r.fee),
+                (sum, r) => sum + parseFormattedNumber(r.fee),
                 0,
               )}
               variant="allBase"

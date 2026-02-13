@@ -18,6 +18,7 @@ import {
   useForm,
   useFormState,
   useWatch,
+  FieldErrors,
 } from "react-hook-form";
 import * as z from "zod";
 import { Plus, X } from "lucide-react";
@@ -133,7 +134,13 @@ const FormActions = memo(function FormActions({
   control: TransferFormControl;
   onReset: () => void;
 }) {
-  const { isValid } = useFormState({ control });
+  const { isValid, errors } = useFormState({ control });
+
+  useEffect(() => {
+    if (Object.keys(errors).length > 0) {
+      console.log("Form Errors:", errors);
+    }
+  }, [errors]);
 
   return (
     <div className="bg-background/50 backdrop-blur-2xl border-t w-full fixed bottom-0 left-1/2 -translate-x-1/2 ">
@@ -210,7 +217,9 @@ const DemandsCalculator = memo(function DemandsCalculator({
     const totalFees = _.sumBy(receivers, (rm) => parseFormattedNumber(rm.fee));
     const totalAmount = totalDemands + totalFees;
 
-    form.setValue("senderMoney.demands", String(totalAmount));
+    if (form.getValues("senderMoney")?.id) {
+      form.setValue("senderMoney.demands", String(totalAmount));
+    }
   }, [form, receivers]);
 
   useEffect(() => {
@@ -405,10 +414,15 @@ export default function TransferMoneyForm({ moneyId }: { moneyId?: string }) {
     defaultValues: {
       senderMoney: targetedSenderMoney
         ? {
-            ...targetedSenderMoney,
+            id: targetedSenderMoney.id,
+            name: targetedSenderMoney.name,
             amount: String(targetedSenderMoney.amount), // Convert number to string for form
+            fintech: targetedSenderMoney.fintech,
+            tags: targetedSenderMoney.tags,
+            date_added: targetedSenderMoney.date_added,
+            date_edited: targetedSenderMoney.date_edited,
             node: "sender",
-            demands: undefined as unknown as string,
+            demands: "",
           }
         : undefined,
       receiverMoneys: [],
@@ -445,52 +459,81 @@ export default function TransferMoneyForm({ moneyId }: { moneyId?: string }) {
 
   const onSubmit = useCallback(
     (transferData: z.infer<typeof moneyTransferInputSchema>) => {
-      // Ensure senderMoney exists
-      if (!transferData.senderMoney) {
-        toast.error("Sender money is required");
-        return;
-      }
+      console.log("Submitting transfer data:", transferData);
+      try {
+        // Ensure senderMoney exists
+        if (!transferData.senderMoney) {
+          toast.error("Sender money is required");
+          return;
+        }
 
-      const fees = transferData.receiverMoneys.reduce(
-        (acc: number, rm) => acc + parseFormattedNumber(rm.fee),
-        0,
-      );
-      const demands = transferData.receiverMoneys.reduce(
-        (acc: number, rm) => acc + parseFormattedNumber(rm.demand),
-        0,
-      );
-      const totalAmount = demands + fees;
+        const fees = transferData.receiverMoneys.reduce(
+          (acc: number, rm) => acc + parseFormattedNumber(rm.fee),
+          0,
+        );
+        const demands = transferData.receiverMoneys.reduce(
+          (acc: number, rm) => acc + parseFormattedNumber(rm.demand),
+          0,
+        );
+        const totalAmount = demands + fees;
 
-      console.log(totalAmount, transferData.senderMoney.demands);
+        const senderDemands = parseFormattedNumber(
+          transferData.senderMoney.demands,
+        );
 
-      if (
-        totalAmount !== parseFormattedNumber(transferData.senderMoney.demands)
-      ) {
-        form.setError("senderMoney.demands", {
-          message: "Demands do not match",
+        console.log("Calculated totalAmount:", totalAmount);
+        console.log("Sender demands in form:", senderDemands);
+
+        if (totalAmount !== senderDemands) {
+          form.setError("senderMoney.demands", {
+            message: `Demands (${senderDemands}) do not match total transfer (${totalAmount})`,
+          });
+          toast.error("Transfer Error", {
+            description: "Demands do not match the sum of receipts and fees.",
+          });
+          return;
+        }
+
+        // Transform using the schema
+        const transformedData = moneyTransferFormSchema.parse(transferData);
+        console.log("Transformed result:", transformedData);
+
+        setMoneysInActionForTransfer(transformedData);
+        setTypeOfAction("transferMoney");
+        setOpenDialog(true);
+      } catch (error) {
+        console.error("Submission crash:", error);
+        toast.error("Critical Error", {
+          description: "An unexpected error occurred during transformation.",
         });
-        toast.error("Demands do not match");
-        return;
       }
-
-      // Transform to MoneyTransfer type (convert string amounts to numbers) using the schema
-      const transformedData = moneyTransferFormSchema.parse(transferData);
-
-      setMoneysInActionForTransfer(transformedData);
-      setTypeOfAction("transferMoney");
-      setOpenDialog(true);
     },
     [form, setMoneysInActionForTransfer, setTypeOfAction, setOpenDialog],
+  );
+
+  const onInvalid = useCallback(
+    (errors: FieldErrors<z.infer<typeof moneyTransferInputSchema>>) => {
+      console.log("FORM VALIDATION FAILED:", errors);
+      toast.error("Validation Error", {
+        description: "Please check the form for errors.",
+      });
+    },
+    [],
   );
 
   // Create sender select handler factory
   const createSenderSelectHandler = useCallback(
     (m: (typeof moneys)[number]) => () => {
       form.setValue("senderMoney", {
-        ...m,
-        amount: String(m.amount), // Convert number to string for form
+        id: m.id,
+        name: m.name,
+        amount: String(m.amount),
+        fintech: m.fintech,
+        tags: m.tags,
+        date_added: m.date_added,
+        date_edited: m.date_edited,
         node: "sender",
-        demands: undefined as unknown as string,
+        demands: "",
       });
       form.setValue("receiverMoneys", []);
     },
@@ -517,22 +560,32 @@ export default function TransferMoneyForm({ moneyId }: { moneyId?: string }) {
               ? [
                   ...currentReceivers,
                   {
-                    ...m,
-                    amount: String(m.amount), // Convert number to string for form
+                    id: m.id,
+                    name: m.name,
+                    amount: String(m.amount),
+                    fintech: m.fintech,
+                    tags: m.tags,
+                    date_added: m.date_added,
+                    date_edited: m.date_edited,
                     node: "receiver",
-                    demand: undefined as unknown as string,
+                    demand: "",
                     reason: "",
-                    fee: undefined as unknown as string,
+                    fee: "",
                   },
                 ]
               : [
                   {
-                    ...m,
-                    amount: String(m.amount), // Convert number to string for form
+                    id: m.id,
+                    name: m.name,
+                    amount: String(m.amount),
+                    fintech: m.fintech,
+                    tags: m.tags,
+                    date_added: m.date_added,
+                    date_edited: m.date_edited,
                     node: "receiver",
-                    demand: undefined as unknown as string,
+                    demand: "",
                     reason: "",
-                    fee: undefined as unknown as string,
+                    fee: "",
                   },
                 ],
           );
@@ -554,7 +607,7 @@ export default function TransferMoneyForm({ moneyId }: { moneyId?: string }) {
   return (
     <form
       id="transfer-money-form"
-      onSubmit={form.handleSubmit(onSubmit)}
+      onSubmit={form.handleSubmit(onSubmit, onInvalid)}
       className="w-full px-4 pb-24 flex flex-col items-center overflow-auto"
     >
       {/* Isolated component for demands calculation - doesn't cause parent re-renders */}
@@ -619,9 +672,9 @@ export default function TransferMoneyForm({ moneyId }: { moneyId?: string }) {
                                     ...m,
                                     amount: String(m.amount), // Convert number to string for Cell
                                     node: "sender",
-                                    demand: undefined as unknown as string,
+                                    demand: "" as string,
                                     reason: "",
-                                    fee: undefined as unknown as string,
+                                    fee: "" as string,
                                   }}
                                   checked={field.value?.id === m.id}
                                 />
@@ -744,9 +797,9 @@ export default function TransferMoneyForm({ moneyId }: { moneyId?: string }) {
                                       ...m,
                                       amount: String(m.amount), // Convert number to string for Cell
                                       node: "receiver",
-                                      demand: undefined as unknown as string,
+                                      demand: "" as string,
                                       reason: "",
-                                      fee: undefined as unknown as string,
+                                      fee: "" as string,
                                     }}
                                     checked={field.value?.some(
                                       (rm) => rm.id === m.id,

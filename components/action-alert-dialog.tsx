@@ -22,6 +22,7 @@ import Loader from "./loader";
 import { IntricateMoney } from "@/types/Money";
 import HistoryTableInfo from "./history-table-info";
 import { useListSettingsStore } from "@/store/ListSettings";
+import { parseFormattedNumber } from "@/lib/utils";
 
 export default function ActionAlertDialog() {
   const {
@@ -247,14 +248,17 @@ function Transfer() {
               const updatedSender = {
                 ...senderMoney,
                 amount:
-                  Number(senderMoney.amount) - Number(senderMoney.demands),
+                  parseFormattedNumber(senderMoney.amount) -
+                  parseFormattedNumber(senderMoney.demands),
                 date_edited: date,
               };
               edit(updatedSender);
               receiverMoneys.forEach((receiver) => {
                 const updatedReceiver = {
                   ...receiver,
-                  amount: Number(receiver.amount) + Number(receiver.demand),
+                  amount:
+                    parseFormattedNumber(receiver.amount) +
+                    parseFormattedNumber(receiver.demand),
                   date_edited: date,
                 };
                 edit(updatedReceiver);
@@ -274,7 +278,9 @@ function Transfer() {
                   ...receiverMoneys.map((receiver) => {
                     const updatedReceiver = {
                       ...receiver,
-                      amount: Number(receiver.amount) + Number(receiver.demand),
+                      amount:
+                        parseFormattedNumber(receiver.amount) +
+                        parseFormattedNumber(receiver.demand),
                       date_edited: date,
                     };
                     return {
@@ -292,8 +298,9 @@ function Transfer() {
                   before: total_money,
                   after:
                     total_money -
-                    Number(
-                      receiverMoneys.reduce((sum, r) => sum + Number(r.fee), 0),
+                    receiverMoneys.reduce(
+                      (sum, r) => sum + parseFormattedNumber(r.fee),
+                      0,
                     ),
                 },
               });

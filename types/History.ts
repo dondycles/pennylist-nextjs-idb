@@ -2,7 +2,7 @@ import z from "zod";
 import { moneyTransferFormSchema, moneyBasicSchema } from "./Money";
 
 const editOrRemoveHistory = z.object({
-  money_id: z.nanoid().min(1, "ID is required."),
+  money_id: z.string().min(1, "ID is required."),
   snapshot: z.object({
     before: moneyBasicSchema.optional(),
     after: moneyBasicSchema.optional(),
@@ -11,7 +11,7 @@ const editOrRemoveHistory = z.object({
 });
 
 export const historyFormSchema = z.object({
-  id: z.nanoid().min(1, "ID is required."),
+  id: z.string().min(1, "ID is required."),
   date_added: z.string().min(1, "Date added is required."),
   type: z.enum(["add", "edit", "delete", "transfer"]),
   transfer_history: moneyTransferFormSchema.nullable(),

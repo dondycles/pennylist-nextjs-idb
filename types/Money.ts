@@ -14,7 +14,7 @@ const formattedNumericStringSchema = (allowEmpty = false) =>
 
 // Form schema without transformations - for use with react-hook-form
 export const moneyFormSchema = z.object({
-  id: z.nanoid().min(1, "ID is required."),
+  id: z.string().min(1, "ID is required."),
   name: z
     .string()
     .min(1, "Name it at least 1 character.")
@@ -58,7 +58,7 @@ const intricateSchemaValidation = (
   ctx: z.RefinementCtx,
 ) => {
   const amountChangeNum = parseFormattedNumber(data.amountChange);
-  const amountNum = Number(data.amount ?? 0);
+  const amountNum = parseFormattedNumber(data.amount);
 
   if (data.adjustmentType === "manual" && amountChangeNum > 0) {
     ctx.addIssue({
@@ -96,17 +96,15 @@ const intricateSchemaValidation = (
   }
 };
 
-export const moneyIntricateFormSchema = moneyFormSchema
-  .extend({
-    operation: z.enum(["add", "deduct"]).default("add").optional(),
-    amountChange: formattedNumericStringSchema(true).optional(),
-    adjustmentType: z
-      .enum(["manual", "addDeduct"])
-      .default("manual")
-      .optional(),
-    reason: z.string().optional(),
-  })
-  .superRefine(intricateSchemaValidation);
+const moneyIntricateFormBaseSchema = moneyFormSchema.extend({
+  operation: z.enum(["add", "deduct"]).default("add").optional(),
+  amountChange: formattedNumericStringSchema(true).optional(),
+  adjustmentType: z.enum(["manual", "addDeduct"]).default("manual").optional(),
+  reason: z.string().optional(),
+});
+
+export const moneyIntricateFormSchema =
+  moneyIntricateFormBaseSchema.superRefine(intricateSchemaValidation);
 
 export const moneyIntricateSchema = moneyIntricateBaseSchema
   .superRefine(intricateSchemaValidation)
@@ -115,8 +113,10 @@ export const moneyIntricateSchema = moneyIntricateBaseSchema
     if (data.adjustmentType === "addDeduct") {
       const finalAmount =
         data.operation === "add"
-          ? Number(data.amount ?? 0) + parseFormattedNumber(data.amountChange)
-          : Number(data.amount ?? 0) - parseFormattedNumber(data.amountChange);
+          ? parseFormattedNumber(data.amount) +
+            parseFormattedNumber(data.amountChange)
+          : parseFormattedNumber(data.amount) -
+            parseFormattedNumber(data.amountChange);
 
       return {
         ...data,
@@ -136,8 +136,8 @@ export type IntricateMoney = z.infer<typeof moneyIntricateSchema>;
 // Form input schema for transfer (before transformation) - for react-hook-form
 export const moneyTransferInputSchema = z
   .object({
-    senderMoney: moneyIntricateFormSchema
-      .safeExtend({
+    senderMoney: moneyIntricateFormBaseSchema
+      .extend({
         node: z.enum(["sender", "receiver"]).optional(),
         reason: z.string().optional(),
         demands: formattedNumericStringSchema(),
@@ -145,7 +145,7 @@ export const moneyTransferInputSchema = z
       .optional(),
     receiverMoneys: z
       .array(
-        moneyIntricateFormSchema.safeExtend({
+        moneyIntricateFormBaseSchema.extend({
           node: z.enum(["sender", "receiver"]).optional(),
           reason: z.string().optional(),
           demand: formattedNumericStringSchema(true).optional(),
@@ -179,6 +179,14 @@ export const moneyTransferInputSchema = z
           message: `Total demand (${totalDemands + totalFees}) exceeds sender balance (${senderAmount})`,
           path: ["receiverMoneys", i, "demand"],
         });
+      });
+    }
+
+    if (totalDemands + totalFees === 0) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Total transfer amount must be greater than 0.",
+        path: ["senderMoney", "demands"],
       });
     }
 
